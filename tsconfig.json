@@ -1,21 +1,58 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "CommonJS",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+
+    // Bundler mode
+    // "moduleResolution": "bundler",
+    // "allowImportingTsExtensions": true,
+    // "verbatimModuleSyntax": true,
+    "noEmit": false,
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Some stricter flags
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2021",
+    
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "paths": {
+      "@constants": [
+        "src/constants"
+      ],
+      "@graphql": [
+        "src/graphql"
+      ],
+      "@services": [
+        "src/services"
+      ],
+      "@guards": [
+        "src/guards"
+      ],
+      "@utils": [
+        "src/utils"
+      ]
+    }
   }
 }

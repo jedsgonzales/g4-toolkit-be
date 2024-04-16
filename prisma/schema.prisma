@@ -6,9 +6,154 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/@internal/prisma/smartg4"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+type DeviceNode {
+  NodeClass     String
+  Name          String
+  AmpRating     Float?
+  VoltRating    Float?
+  WattRating    Int?
+}
+
+type DeviceNodeState {
+  State         Boolean?             // for power on/off, sensor detection
+  StatusValue   Int?                 // 0 - 100 powered state. e. g. dimmer, motor
+  AmpereValue   Int?
+  VoltageValue  Int?
+  WattPower     Int?
+}
+
+model User {
+  Id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  Username          String
+  Email             String?
+  FirstName         String?
+  LastName          String?
+  Password          String
+  Disabled          Boolean?
+  Archived          Boolean?
+  CreatedOn         DateTime
+  ArchivedOn        DateTime?
+  LoginKey          String?
+  LoginKeyExpireOn  DateTime?
+
+  Sessions      UserSession[]
+}
+
+model UserSession {
+  SessionId     String              @id @default(auto()) @map("_id") @db.ObjectId
+  UserId        String              @db.ObjectId
+  User          User                @relation(fields: [UserId], references: [Id], onDelete: Cascade)
+  UserIp        String  
+  LoginOn       DateTime
+  ExpireOn      DateTime  
+}
+
+model DeviceType {
+  Id            Int                 @id @map("_id")
+  DeviceCode    String 
+  DeviceDesc    String
+
+  NetDevices    NetworkDevice[]
+}
+
+model DeviceTypeNode {
+  Id            String              @id @map("_id")
+  Channel       Int?
+  NodeInfo      DeviceNode
+
+  NetworkChannels NetworkChannel[]
+}
+
+model Area {
+  Id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  Name          String
+  Details       String?
+  
+  ParentAreaId  String?             @db.ObjectId
+  ParentArea    Area?               @relation(name: "ParentSubArea", fields: [ParentAreaId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+
+  SubAreas      Area[]              @relation(name: "ParentSubArea")
+
+  NetworkChannels NetworkChannel[]
+
+  CreatedOn     DateTime
+  UpdatedOn     DateTime
+  CreatedBy     String
+  UpdatedBy     String
+}
+
+model NetworkDevice {
+  Id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  Enabled       Boolean?
+
+  DeviceId      Int
+  DeviceType    DeviceType          @relation(fields: [DeviceId], references: [Id], onDelete: Cascade)
+
+  CustomDesc    String
+
+  Channels      NetworkChannel[]
+}
+
+model NetworkChannel {
+  Id            String              @id @default(auto()) @map("_id") @db.ObjectId
+
+  NodeTypeId    String              
+  NodeType      DeviceTypeNode      @relation(fields: [NodeTypeId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+
+  CustomDesc    String?
+
+  AreaId        String?             @db.ObjectId
+  Area          Area?               @relation(fields: [AreaId], references: [Id], onDelete: Cascade)
+
+  NetworkDevId  String              @db.ObjectId
+  NetworkDevice NetworkDevice       @relation(fields: [NetworkDevId], references: [Id], onDelete: Cascade)
+
+  LastStateId   String?             // refer to NodeStatus.Id
+}
+
+model NodeStatus {
+  Id            String              @id @map("_id") // composite ID by device/channel/time
+  Time          DateTime              // UTC value of millisec
+  State         DeviceNodeState
+}
+
+model IncomingMsg {
+  Id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  TimeReceived    BigInt
+  SenderIp        String
+  DeviceType      Int
+  SubnetId        Int
+  DeviceId        Int 
+  OpCode          Int 
+  TargetSubnetId  Int
+  TargetDeviceId  Int
+  ContentLen      Int
+  Content         Bytes
+}
+
+model OutgoingMsg {
+  Id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  TimeReceived    BigInt
+  OpCode          Int
+  TargetSubnetId  Int
+  TargetDeviceId  Int
+  ContentLen      Int
+  Content         Bytes
+  CRCH            Int
+  CRCL            Int 
+  Priority        Priority            @default(NORMAL)
 }
