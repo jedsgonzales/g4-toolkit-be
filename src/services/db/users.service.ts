@@ -11,13 +11,13 @@ export class UsersService {
     private readonly prisma: SmartG4DbClient,
   ) {}
 
-  async findByUsername(username: string): Promise<User | undefined> {
+  async findByUsername(username: string): Promise<User | null> {
     return this.prisma.user.findFirst({
       where: { Username: username.toLowerCase() },
     });
   }
 
-  async findById(id: any): Promise<User | undefined> {
+  async findById(id: any): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { Id: id },
     });
@@ -36,10 +36,13 @@ export class UsersService {
     lastName?: string;
     email?: string;
   }) {
+    const hasher = new Bun.CryptoHasher('sha256');
+    hasher.update(password);
+
     await this.prisma.user.create({
       data: {
         Username: username.toLowerCase(),
-        Password: password,
+        Password: hasher.digest('hex'),
         FirstName: firstName,
         LastName: lastName,
         Email: email,
@@ -83,9 +86,12 @@ export class UsersService {
   }
 
   async changeUserPassword(id: any, password: string) {
+    const hasher = new Bun.CryptoHasher('sha256');
+    hasher.update(password);
+
     await this.prisma.user.update({
       where: { Id: id },
-      data: { Password: password },
+      data: { Password: hasher.digest('hex') },
     });
   }
 

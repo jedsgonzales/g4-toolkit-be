@@ -20,7 +20,16 @@ export class AuthService {
    */
   async signIn(username: string, pass: string): Promise<AuthResult> {
     const user = await this.usersService.findByUsername(username);
-    if (user?.Password !== pass) {
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const hasher = new Bun.CryptoHasher('md5');
+    hasher.update(`${user.Password}${user.LoginKey}`);
+    const obsPass = hasher.digest('hex');
+
+    if (obsPass !== pass) {
       throw new UnauthorizedException();
     }
 

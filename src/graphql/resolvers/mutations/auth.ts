@@ -11,7 +11,7 @@ export class AuthResolver {
    *  1. Obtain a login key using GetLoginKey mutation
    *  2. Use the key to obfuscate the password:
    *    2.1 hash the password with sha256 algo and obtain hex string value
-   *    2.2 concatenate the password hash with loginkey and has the result with md5 algo
+   *    2.2 concatenate the password hash with loginkey and hash the result with md5 algo
    *  3. Submit the username and the resulting md5 hex string value to the SignIn mutation
    * @param username unique value username
    * @param password obfucated password value

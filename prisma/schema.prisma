@@ -96,12 +96,38 @@ model Area {
   UpdatedBy     String
 }
 
+model NetworkBroadcaster {
+  Id            String              @id @map("_id") // IP Address
+  Name          String?
+
+  AllowDevicesByDefault Boolean     @default(true)
+
+  Enabled       Boolean             @default(false)
+  EnabledOn     DateTime?
+  EnabledBy     String?
+  DisabledOn    DateTime?
+  DisabledBy    String?
+
+  DetectedOn    DateTime
+  LastMsgOn     DateTime?
+
+  NetworkDevices NetworkDevice[]
+}
+
 model NetworkDevice {
-  Id            String              @id @default(auto()) @map("_id") @db.ObjectId
-  Enabled       Boolean?
+  Id            String              @id @map("_id")
+  Enabled       Boolean             @default(false)
+
+  EnabledOn     DateTime?
+  EnabledBy     String?
+  DisabledOn    DateTime?
+  DisabledBy    String?
 
   DeviceId      Int
   DeviceType    DeviceType          @relation(fields: [DeviceId], references: [Id], onDelete: Cascade)
+
+  BroadcasterId String              
+  NetworkBroadcaster      NetworkBroadcaster      @relation(fields: [BroadcasterId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
 
   CustomDesc    String
 
@@ -119,7 +145,7 @@ model NetworkChannel {
   AreaId        String?             @db.ObjectId
   Area          Area?               @relation(fields: [AreaId], references: [Id], onDelete: Cascade)
 
-  NetworkDevId  String              @db.ObjectId
+  NetworkDevId  String              
   NetworkDevice NetworkDevice       @relation(fields: [NetworkDevId], references: [Id], onDelete: Cascade)
 
   LastStateId   String?             // refer to NodeStatus.Id
