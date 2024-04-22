@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import dgram from 'dgram';
 
-@Injectable()
 export class UdpListener {
   socket: dgram.Socket;
   isClosed = false;

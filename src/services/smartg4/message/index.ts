@@ -4,32 +4,42 @@ const smartcloud = Buffer.from('SMARTCLOUD');
 const standardHeader = Buffer.from([...smartcloud, 0xaa, 0xaa]);
 
 export const withLeadCodes = (fullPacket: Buffer) => {
-  const targetIdx = 4 + smartcloud.length;
+  const smartCloundIndex = fullPacket.indexOf(smartcloud);
+  const targetIdx = smartCloundIndex + smartcloud.length;
 
   if (
     !(fullPacket.subarray(targetIdx, targetIdx + 2).readUInt16BE(0) == 0xaaaa)
   ) {
     throw new MalformedSmartG4MessageError('Missing lead codes');
   }
+
+  return true;
 };
 
 export const withProperLength = (fullPacket: Buffer) => {
-  const minLength = 4 + standardHeader.length + 1; // IP + Header + Lead Code
+  const smartCloundIndex = fullPacket.indexOf(smartcloud);
+  const minLength = smartCloundIndex + standardHeader.length + 1; // IP + Header + Lead Code
   const length = fullPacket.subarray(minLength - 1, minLength).readUInt8(0);
   const reqLength = minLength + length - 1;
 
   if (!(length >= 11 && length <= 78 && fullPacket.length >= reqLength)) {
     throw new MalformedSmartG4MessageError('Wrong length');
   }
+
+  return length;
 };
 
 export const withCorrectCRC = (fullPacket: Buffer) => {
-  const minLength = 4 + standardHeader.length + 1; // IP + Header + Lead Code
+  const smartCloundIndex = fullPacket.indexOf(smartcloud);
+  const minLength = smartCloundIndex + standardHeader.length + 1; // IP + Header + Lead Code
   const length = fullPacket.subarray(minLength - 1, minLength).readUInt8(0);
 
-  if (!checkCRC(fullPacket.subarray(minLength - 1), length - 2)) {
+  const crc = checkCRC(fullPacket.subarray(minLength - 1), length - 2);
+  if (!crc) {
     throw new MalformedSmartG4MessageError('Bad CRC');
   }
+
+  return crc;
 };
 
 /**
@@ -94,7 +104,7 @@ export const packCRC = (arrayPtrBuf: Buffer, intBufLen: number) => {
   }
 };
 
-export const checkCRC = (arrayPtrBuf: Buffer, intBufLen: number): boolean => {
+export const checkCRC = (arrayPtrBuf: Buffer, intBufLen: number) => {
   let wdCRC: number = 0;
   let bytDat: number;
   let bytPtrCount: number = 0;
@@ -109,14 +119,17 @@ export const checkCRC = (arrayPtrBuf: Buffer, intBufLen: number): boolean => {
       intBufLen--;
     }
 
-    return (
+    if (
       arrayPtrBuf[bytPtrCount] === wdCRC >> 8 &&
       arrayPtrBuf[bytPtrCount + 1] === (wdCRC & 0x00ff)
-    );
+    ) {
+      return arrayPtrBuf.subarray(bytPtrCount, bytPtrCount + 2);
+    }
   } catch (ex: any) {
     console.error(ex.message + '(CheckCRC)');
-    return false;
   }
+
+  return false;
 };
 
 export * from './raw_structure';

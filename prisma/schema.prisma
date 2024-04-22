@@ -157,26 +157,44 @@ model NodeStatus {
   State         DeviceNodeState
 }
 
-model IncomingMsg {
+type SmartG4Address {
+  SubnetId        Int
+  DeviceId        Int
+}
+
+enum SystemFilterAction {
+  ACCEPT
+  REJECT
+  PENDING
+}
+
+model SystemFilter {
   Id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  RuleName        String?
+  OrderNo         Int
+  Ip              String
+  DeviceId        String?
+  SubnetId        String?
+  FilterAction    SystemFilterAction
+}
+
+model IncomingMsg {
+  Id              String              @id @map("_id")
   TimeReceived    BigInt
   SenderIp        String
   DeviceType      Int
-  SubnetId        Int
-  DeviceId        Int 
+  OriginDevice    SmartG4Address
   OpCode          Int 
-  TargetSubnetId  Int
-  TargetDeviceId  Int
+  TargetDevice    SmartG4Address
   ContentLen      Int
-  Content         Bytes
+  Content         Int[]
 }
 
 model OutgoingMsg {
-  Id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  Id              String              @id @map("_id")
   TimeReceived    BigInt
   OpCode          Int
-  TargetSubnetId  Int
-  TargetDeviceId  Int
+  TargetDevice    SmartG4Address
   ContentLen      Int
   Content         Bytes
   CRCH            Int
