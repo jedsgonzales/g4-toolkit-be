@@ -1,8 +1,5 @@
 import { Inject } from '@nestjs/common';
-import { SmartG4DbClient } from '@services';
-import { DateTime } from 'luxon';
-import { BaseStructure } from './message';
-import { UdpListener } from './udp.listener.service';
+import type { SmartG4DbClient } from '@services';
 
 export class IncomingParser {
   shutdown = false;
@@ -33,7 +30,6 @@ export class IncomingParser {
       });
 
       for (const incomingMsg of bulk) {
-        
       }
     }
   }

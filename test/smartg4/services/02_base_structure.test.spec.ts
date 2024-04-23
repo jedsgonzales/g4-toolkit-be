@@ -51,7 +51,7 @@ describe('SmartG4::BaseStructure', () => {
     const index = relayQueryPacket.length - 2;
 
     expect(instance.Crc).toStrictEqual(
-      relayQueryPacket.subarray(index, index + 2).readUInt16BE(0),
+      relayQueryPacket.subarray(index, index + 2),
     );
   });
 });

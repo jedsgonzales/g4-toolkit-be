@@ -1,4 +1,4 @@
-import { CRC_TABLE } from 'src/constants/smart_g4';
+import { CRC_TABLE } from '@constants';
 
 const smartcloud = Buffer.from('SMARTCLOUD');
 const standardHeader = Buffer.from([...smartcloud, 0xaa, 0xaa]);

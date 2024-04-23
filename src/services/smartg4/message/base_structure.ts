@@ -1,5 +1,5 @@
 import { LEAD_CODES } from '@constants';
-import { getDataAfterHeader, withLeadCodes, withProperLength } from '.';
+import { withLeadCodes, withProperLength } from '.';
 import { RawStructure } from './raw_structure';
 
 export interface DeviceAddress {
@@ -17,7 +17,7 @@ export class BaseStructure extends RawStructure {
   Content: Buffer;
 
   /** contains lead code until crc */
-  DataBody: Buffer;
+  /* DataBody: Buffer; */
 
   constructor(input: RawStructure | Buffer) {
     if (input instanceof RawStructure) {
@@ -28,9 +28,9 @@ export class BaseStructure extends RawStructure {
       withLeadCodes(input);
       withProperLength(input);
 
-      this.DataBody = getDataAfterHeader(input);
+      /* this.DataBody = getDataAfterHeader(input); */
 
-      this.Length = this.DataBody.subarray(
+      this.Length = this.Data.subarray(
         LEAD_CODES.length,
         LEAD_CODES.length + 1,
       ).readUInt8(0);
@@ -45,7 +45,7 @@ export class BaseStructure extends RawStructure {
         tSubId,
         tDevId,
         ...content
-      ] = this.DataBody.subarray(LEAD_CODES.length + 1);
+      ] = this.Data.subarray(LEAD_CODES.length + 1);
 
       this.TargetAddress = {
         SubnetId: tSubId,

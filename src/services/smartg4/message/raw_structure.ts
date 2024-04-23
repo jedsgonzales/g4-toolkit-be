@@ -1,6 +1,7 @@
 import { SMARTCLOUD } from '@constants';
 import {
   DeviceAddress,
+  getDataAfterHeader,
   withCorrectCRC,
   withProperLength,
   withSmartG4Header,
@@ -36,11 +37,11 @@ export class RawStructure {
 
     const subnetPos = smartCloundIndex + SMARTCLOUD.length + 2;
     this.OriginAddress = {
-      SubnetId: input.subarray(subnetPos, subnetPos + 1).readUint8(0),
-      DeviceId: input.subarray(subnetPos + 1, subnetPos + 2).readUint8(0),
+      SubnetId: input.subarray(subnetPos + 1, subnetPos + 2).readUint8(0),
+      DeviceId: input.subarray(subnetPos + 2, subnetPos + 3).readUint8(0),
     };
 
-    this.Data = input.subarray(smartCloundIndex + SMARTCLOUD.length);
+    this.Data = getDataAfterHeader(input);
     this.Raw = input;
   }
 }

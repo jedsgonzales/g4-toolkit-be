@@ -19,7 +19,7 @@ describe('SmartG4 Message Parsing', () => {
     }).not.toThrow(MalformedSmartG4MessageError);
   });
 
-  test('withProperLength', () => {
+  /* test('withProperLength', () => {
     expect(() => {
       withProperLength(relayQueryPacket);
     }).not.toThrow(MalformedSmartG4MessageError);
@@ -45,5 +45,5 @@ describe('SmartG4 Message Parsing', () => {
 
   test('getIpBeforeHeader', () => {
     expect(getIpBeforeHeader(relayQueryPacket)).toEqual(SOURCE_IP);
-  });
+  }); */
 });

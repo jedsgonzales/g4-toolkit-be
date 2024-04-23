@@ -1,6 +1,6 @@
 import { SystemFilter, SystemFilterAction } from '@internal/prisma/smartg4';
 import { Inject } from '@nestjs/common';
-import { SmartG4DbClient } from '@services';
+import type { SmartG4DbClient } from '@services';
 import { DateTime } from 'luxon';
 import { BaseStructure } from './message';
 import { UdpListener } from './udp.listener.service';
