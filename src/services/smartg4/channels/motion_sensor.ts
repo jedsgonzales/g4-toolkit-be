@@ -1,23 +1,26 @@
-import { Channel } from './channel';
-import { smartG4UdpSender } from '../sender.service';
-import { OverrideOpts, VarSwitchState } from '@localtypes';
+import { MotionSensorState, OverrideOpts } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
+import { smartG4UdpSender } from '../sender.service';
+import { Channel } from './channel';
 import { Device } from '../device';
 
-interface VarSwitchControl extends VarSwitchState {
-  RunningTime?: number;
-}
-export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
-  constructor(props: VarSwitchState, channel: number, device?: Device) {
-    super(props);
+export class MotionSensor extends Channel<MotionSensorState, null> {
+  SensorNo: number;
+
+  constructor(state: MotionSensorState, sensor: number, device?: Device) {
+    super(state);
 
     this.ChannelDevice = device;
-    this.ChannelNo = channel;
-    this.TypeName = 'Dimmer';
+    this.SensorNo = sensor;
+    this.TypeName = 'MotionSensor';
   }
 
+  /**
+   * Default query as a relay channel.
+   * @param param0
+   */
   public queryStatus({ UseAddress, UseType }: OverrideOpts) {
-    const msg = senderOpCodeMap['0x0033']({
+    const msg = senderOpCodeMap['0xdb00']({
       Target: {
         address: UseAddress || {
           SubnetId: this.ChannelDevice.SubnetId,
@@ -33,14 +36,8 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
     });
   }
 
-  setState({
-    UseAddress,
-    UseType,
-    RunningTime,
-    Status,
-    Percentage,
-  }: OverrideOpts & VarSwitchControl): Buffer {
-    const msg = senderOpCodeMap['0x0031']({
+  public setState({} /* UseAddress, UseType, Status */ : OverrideOpts) {
+    /* const msg = senderOpCodeMap['0x0031']({
       Target: {
         address: UseAddress || {
           SubnetId: this.ChannelDevice.SubnetId,
@@ -50,8 +47,7 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
       },
       ChannelNo: this.ChannelNo,
       Status,
-      Percentage: Percentage,
-      RunningTime: RunningTime || 0,
+      RunningTime: 0,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
@@ -60,8 +56,6 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
         err,
         bytes,
       );
-    });
-
-    return msg;
+    }); */
   }
 }

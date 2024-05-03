@@ -31,9 +31,11 @@ export class RawStructure {
     this.StartIndex = smartCloundIndex - 4;
     this.EndIndex = smartCloundIndex + SMARTCLOUD.length + this.PayloadLength;
 
-    this.OriginIp = new String(
+    this.OriginIp = Array.from(
       input.subarray(this.StartIndex, smartCloundIndex),
-    ).toString();
+    )
+      .map((o) => o.toString(10))
+      .join('.');
 
     const subnetPos = smartCloundIndex + SMARTCLOUD.length + 2;
     this.OriginAddress = {

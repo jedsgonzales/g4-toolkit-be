@@ -3,6 +3,7 @@ import { DateTime } from 'luxon';
 import type { User } from '@internal/prisma/smartg4';
 import type { SmartG4DbClient } from '.';
 import { createString } from 'src/utils/string';
+import crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -36,7 +37,7 @@ export class UsersService {
     lastName?: string;
     email?: string;
   }) {
-    const hasher = new Bun.CryptoHasher('sha256');
+    const hasher = crypto.createHash('sha256');
     hasher.update(password);
 
     await this.prisma.user.create({
@@ -86,7 +87,7 @@ export class UsersService {
   }
 
   async changeUserPassword(id: any, password: string) {
-    const hasher = new Bun.CryptoHasher('sha256');
+    const hasher = crypto.createHash('md5');
     hasher.update(password);
 
     await this.prisma.user.update({

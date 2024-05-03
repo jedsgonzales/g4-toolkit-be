@@ -1,12 +1,18 @@
-export class Channel {
+import { OverrideOpts } from '@localtypes';
+import { Device } from '../device';
+
+export abstract class Channel<T, C> {
+  ChannelDevice: Device;
+
   TypeName: string = 'Channel';
-  TypeId: number = 0;
+  ChannelNo: number = -1;
 
-  ChannelNo: number;
-  Status: boolean;
+  State: T;
 
-  constructor(props: { ChannelNo: number; Status: boolean }) {
-    this.ChannelNo = props.ChannelNo;
-    this.Status = props.Status;
+  constructor(props: T) {
+    this.State = props;
   }
+
+  abstract setState(newState: C & OverrideOpts);
+  abstract queryStatus(opts: OverrideOpts);
 }

@@ -1,3 +1,4 @@
+import { SMARTCLOUD } from '@constants';
 import {
   MalformedSmartG4MessageError,
   getDataAfterHeader,
@@ -7,43 +8,43 @@ import {
   withProperLength,
   withSmartG4Header,
 } from '@services';
-import { test, describe, expect } from 'bun:test';
-import relayQueryPacket from '../packet_samples/query_relay';
+import { describe, expect, test } from 'bun:test';
 import { SOURCE_IP } from '../packet_samples';
-import { SMARTCLOUD } from '@constants';
+
+import packet_0x0031_relayQuery from '../packet_samples/0x0031_query_relay';
 
 describe('SmartG4 Message Parsing', () => {
   test('withLeadCodes', () => {
     expect(() => {
-      withLeadCodes(relayQueryPacket);
+      withLeadCodes(packet_0x0031_relayQuery);
     }).not.toThrow(MalformedSmartG4MessageError);
   });
 
-  /* test('withProperLength', () => {
+  test('withProperLength', () => {
     expect(() => {
-      withProperLength(relayQueryPacket);
+      withProperLength(packet_0x0031_relayQuery);
     }).not.toThrow(MalformedSmartG4MessageError);
   });
 
   test('withSmartG4Header', () => {
     expect(() => {
-      withSmartG4Header(relayQueryPacket);
+      withSmartG4Header(packet_0x0031_relayQuery);
     }).not.toThrow(MalformedSmartG4MessageError);
   });
 
   test('withCorrectCRC', () => {
     expect(() => {
-      withCorrectCRC(relayQueryPacket);
+      withCorrectCRC(packet_0x0031_relayQuery);
     }).not.toThrow(MalformedSmartG4MessageError);
   });
 
   test('getDataAfterHeader', () => {
-    expect(getDataAfterHeader(relayQueryPacket)).toEqual(
-      relayQueryPacket.subarray(SOURCE_IP.length + SMARTCLOUD.length),
+    expect(getDataAfterHeader(packet_0x0031_relayQuery)).toEqual(
+      packet_0x0031_relayQuery.subarray(SOURCE_IP.length + SMARTCLOUD.length),
     );
   });
 
   test('getIpBeforeHeader', () => {
-    expect(getIpBeforeHeader(relayQueryPacket)).toEqual(SOURCE_IP);
-  }); */
+    expect(getIpBeforeHeader(packet_0x0031_relayQuery)).toEqual(SOURCE_IP);
+  });
 });

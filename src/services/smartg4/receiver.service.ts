@@ -1,9 +1,10 @@
-import { SystemFilter, SystemFilterAction } from '@internal/prisma/smartg4';
+import { SystemFilter } from '@internal/prisma/smartg4';
 import { Inject } from '@nestjs/common';
 import type { SmartG4DbClient } from '@services';
 import { DateTime } from 'luxon';
 import { BaseStructure } from './message';
 import { UdpListener } from './udp.listener.service';
+import { SYSTEM_IP, SystemFilterAction } from '@constants';
 
 export class SmartG4Reciever {
   listener: UdpListener;
@@ -11,57 +12,63 @@ export class SmartG4Reciever {
   filterTable: SystemFilter[] = [];
 
   constructor(
-    @Inject('DB_CONNECTION') private readonly prismaService: SmartG4DbClient,
+    @Inject('DB_CONNECTION') private readonly prismaService?: SmartG4DbClient,
   ) {
     this.dataQueue = Buffer.from([]);
   }
 
   async startMonitoring() {
     // load and cache filter table
-    this.filterTable = await this.prismaService.systemFilter.findMany({
-      orderBy: {
-        OrderNo: 'asc',
-      },
-    });
+    this.filterTable = this.prismaService
+      ? await this.prismaService.systemFilter.findMany({
+          orderBy: {
+            OrderNo: 'asc',
+          },
+        })
+      : [];
+
+    console.log('LOAD', this.filterTable);
 
     this.listener = new UdpListener(
-      Number(process.env['SMART_G4_PORT'] || 3000),
+      Number(process.env['SMART_G4_PORT'] || 6000),
       async (msg: Buffer) => {
-        console.log('Received message:', msg);
+        console.log('\nReceived message:', msg);
 
         const data = Buffer.from([...this.dataQueue, ...msg]);
 
         try {
           const baseParse = new BaseStructure(data);
 
-          if (!this.isPacketAllowed(baseParse)) {
-            console.error('Packet is disallowed:', baseParse);
+          if (!(await this.isPacketAllowed(baseParse))) {
+            console.log(
+              'Packet is disallowed or pending approval',
+              baseParse.OriginIp,
+              baseParse.OriginAddress,
+            );
+          } else if (baseParse.OriginIp === SYSTEM_IP) {
+            // ignore from own IP
           } else {
             const moment = DateTime.utc().toMillis();
 
-            await this.prismaService.incomingMsg.create({
-              data: {
-                Id: `${moment}#${baseParse.OriginIp}#${baseParse.OriginAddress.SubnetId}#${baseParse.OriginAddress.DeviceId}`,
-                TimeReceived: moment,
-                SenderIp: baseParse.OriginIp,
-                DeviceType: baseParse.DeviceType,
-                OriginDevice: {
-                  SubnetId: baseParse.OriginAddress.SubnetId,
-                  DeviceId: baseParse.OriginAddress.DeviceId,
+            this.prismaService &&
+              (await this.prismaService.incomingMsg.create({
+                data: {
+                  TimeReceived: moment,
+                  SenderIp: baseParse.OriginIp,
+                  DeviceType: baseParse.DeviceType,
+                  OriginDeviceId: baseParse.OriginAddress.DeviceId,
+                  OriginSubnetId: baseParse.OriginAddress.SubnetId,
+                  OpCode: baseParse.OpCode,
+                  TargetDeviceId: baseParse.TargetAddress.DeviceId,
+                  TargetSubnetId: baseParse.TargetAddress.SubnetId,
+                  ContentLen: baseParse.Length,
+                  Content: baseParse.Content,
                 },
-                OpCode: baseParse.OpCode,
-                TargetDevice: {
-                  SubnetId: baseParse.TargetAddress.SubnetId,
-                  DeviceId: baseParse.TargetAddress.DeviceId,
-                },
-                ContentLen: baseParse.Length,
-                Content: Array.from(baseParse.Content),
-              },
-            });
+              }));
           }
 
           if (baseParse.EndIndex <= data.length) {
-            this.dataQueue = data.subarray(baseParse.EndIndex + 1);
+            this.dataQueue = data.subarray(baseParse.EndIndex);
           } else {
             this.dataQueue = Buffer.from([]);
           }
@@ -70,11 +77,14 @@ export class SmartG4Reciever {
         }
       },
     );
+
+    this.listener.listen();
   }
 
   async isPacketAllowed(packet: BaseStructure) {
     let hasRule = false;
     let isAllowed = false; // default drop
+
     for (const filter of this.filterTable) {
       const ipPass = filter.Ip === '*' || filter.Ip === packet.OriginIp;
       const devIdPass =
@@ -88,12 +98,17 @@ export class SmartG4Reciever {
 
       if (ipPass && devIdPass && subnetPass) {
         hasRule = true;
-        isAllowed = filter.FilterAction === SystemFilterAction.ACCEPT;
+        isAllowed = filter.FilterAction === SystemFilterAction.ALLOW;
       }
     }
 
-    if (!hasRule) {
-      const ruleCount = await this.prismaService.systemFilter.count();
+    if (!hasRule && !!this.prismaService) {
+      console.log(
+        '\n+++++ Add Pending Rule +++++',
+        packet.OriginIp,
+        packet.OriginAddress,
+      );
+      const ruleCount = this.filterTable.length;
       await this.prismaService.systemFilter.create({
         data: {
           Ip: packet.OriginIp,
@@ -103,6 +118,15 @@ export class SmartG4Reciever {
           FilterAction: SystemFilterAction.PENDING,
         },
       });
+
+      // reload filter table
+      this.filterTable = await this.prismaService.systemFilter.findMany({
+        orderBy: {
+          OrderNo: 'asc',
+        },
+      });
+
+      console.log('\nReloaded Filters ^^^^^^', this.filterTable);
     }
 
     return isAllowed;

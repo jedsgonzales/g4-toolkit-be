@@ -22,14 +22,14 @@ export class IncomingParser {
           TimeReceived: 'asc',
         },
         where: {
-          TargetDevice: {
-            SubnetId: top.TargetDevice.SubnetId,
-            DeviceId: top.TargetDevice.DeviceId,
-          },
+          TargetDeviceId: top.TargetDeviceId,
+          TargetSubnetId: top.TargetSubnetId,
+          DeviceType: top.DeviceType,
         },
       });
 
       for (const incomingMsg of bulk) {
+        console.log('Entry', incomingMsg.Id);
       }
     }
   }

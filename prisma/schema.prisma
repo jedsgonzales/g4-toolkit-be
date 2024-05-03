@@ -10,34 +10,34 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-enum Priority {
-  LOW
-  NORMAL
-  HIGH
-}
+//enum Priority {
+//  LOW
+//  NORMAL
+//  HIGH
+//}
 
-type DeviceNode {
-  NodeClass     String
-  Name          String
-  AmpRating     Float?
-  VoltRating    Float?
-  WattRating    Int?
-}
+//type DeviceNode {
+//  NodeClass     String
+//  Name          String
+//  AmpRating     Float?
+//  VoltRating    Float?
+//  WattRating    Int?
+//}
 
-type DeviceNodeState {
-  State         Boolean?             // for power on/off, sensor detection
-  StatusValue   Int?                 // 0 - 100 powered state. e. g. dimmer, motor
-  AmpereValue   Int?
-  VoltageValue  Int?
-  WattPower     Int?
-}
+//type DeviceNodeState {
+//  State         Boolean?             // for power on/off, sensor detection
+//  StatusValue   Int?                 // 0 - 100 powered state. e. g. dimmer, motor
+//  AmpereValue   Int?
+//  VoltageValue  Int?
+//  WattPower     Int?
+//}
 
 model User {
-  Id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  Id                Int               @id @default(autoincrement()) @map("_id")
   Username          String
   Email             String?
   FirstName         String?
@@ -54,41 +54,25 @@ model User {
 }
 
 model UserSession {
-  SessionId     String              @id @default(auto()) @map("_id") @db.ObjectId
-  UserId        String              @db.ObjectId
+  SessionId     String              @id @default(uuid()) @map("_id")
+  UserId        Int              
   User          User                @relation(fields: [UserId], references: [Id], onDelete: Cascade)
   UserIp        String  
   LoginOn       DateTime
   ExpireOn      DateTime  
 }
 
-model DeviceType {
-  Id            Int                 @id @map("_id")
-  DeviceCode    String 
-  DeviceDesc    String
-
-  NetDevices    NetworkDevice[]
-}
-
-model DeviceTypeNode {
-  Id            String              @id @map("_id")
-  Channel       Int?
-  NodeInfo      DeviceNode
-
-  NetworkChannels NetworkChannel[]
-}
-
 model Area {
-  Id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  Id            Int                 @id @default(autoincrement()) @map("_id")
   Name          String
   Details       String?
   
-  ParentAreaId  String?             @db.ObjectId
+  ParentAreaId  Int?             
   ParentArea    Area?               @relation(name: "ParentSubArea", fields: [ParentAreaId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
 
   SubAreas      Area[]              @relation(name: "ParentSubArea")
 
-  NetworkChannels NetworkChannel[]
+  Devices       NetworkDevice[]
 
   CreatedOn     DateTime
   UpdatedOn     DateTime
@@ -115,7 +99,7 @@ model NetworkBroadcaster {
 }
 
 model NetworkDevice {
-  Id            String              @id @map("_id")
+  Id            Int                 @id @default(autoincrement()) @map("_id")
   Enabled       Boolean             @default(false)
 
   EnabledOn     DateTime?
@@ -124,10 +108,14 @@ model NetworkDevice {
   DisabledBy    String?
 
   DeviceId      Int
-  DeviceType    DeviceType          @relation(fields: [DeviceId], references: [Id], onDelete: Cascade)
+  SubnetId      Int
+  DeviceType    Int
 
   BroadcasterId String              
   NetworkBroadcaster      NetworkBroadcaster      @relation(fields: [BroadcasterId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+
+  AreaId        Int?             
+  Area          Area?               @relation(fields: [AreaId], references: [Id], onDelete: Cascade)
 
   CustomDesc    String
 
@@ -135,69 +123,81 @@ model NetworkDevice {
 }
 
 model NetworkChannel {
-  Id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  Id            BigInt              @id @default(autoincrement()) @map("_id")
 
-  NodeTypeId    String              
-  NodeType      DeviceTypeNode      @relation(fields: [NodeTypeId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+  NodeType      String              
 
   CustomDesc    String?
 
-  AreaId        String?             @db.ObjectId
-  Area          Area?               @relation(fields: [AreaId], references: [Id], onDelete: Cascade)
-
-  NetworkDevId  String              
+  NetworkDevId  Int
   NetworkDevice NetworkDevice       @relation(fields: [NetworkDevId], references: [Id], onDelete: Cascade)
 
-  LastStateId   String?             // refer to NodeStatus.Id
+  Status        ChannelStatus[]
+  History       ChannelStatusHistory[]
 }
 
-model NodeStatus {
+model ChannelStatus {
   Id            String              @id @map("_id") // composite ID by device/channel/time
-  Time          DateTime              // UTC value of millisec
-  State         DeviceNodeState
+  StateName     String 
+  StateValue    String
+
+  ChannelId     BigInt
+  Channel       NetworkChannel      @relation(fields: [ChannelId], references: [Id], onDelete: Cascade) 
 }
 
-type SmartG4Address {
-  SubnetId        Int
-  DeviceId        Int
+model ChannelStatusHistory {
+  Id            String              @id @map("_id") // composite ID by device/channel/time
+  Time          DateTime            // UTC value of millisec
+  State         String              // JSON String of all states
+
+  ChannelId     BigInt
+  Channel       NetworkChannel      @relation(fields: [ChannelId], references: [Id], onDelete: Cascade) 
 }
 
-enum SystemFilterAction {
-  ACCEPT
-  REJECT
-  PENDING
-}
+// type SmartG4Address {
+//  SubnetId        Int
+//  DeviceId        Int
+// }
+
+//enum SystemFilterAction {
+//  ACCEPT
+//  REJECT
+//  PENDING
+//}
 
 model SystemFilter {
-  Id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  Id              String              @id @default(uuid()) @map("_id")
   RuleName        String?
   OrderNo         Int
   Ip              String
   DeviceId        String?
   SubnetId        String?
-  FilterAction    SystemFilterAction
+  FilterAction    String //SystemFilterAction
 }
 
 model IncomingMsg {
-  Id              String              @id @map("_id")
+  Id              BigInt              @id @default(autoincrement()) @map("_id")
   TimeReceived    BigInt
   SenderIp        String
   DeviceType      Int
-  OriginDevice    SmartG4Address
+  OriginDeviceId  Int  // SmartG4Address
+  OriginSubnetId  Int  
   OpCode          Int 
-  TargetDevice    SmartG4Address
+  TargetDeviceId  Int  // SmartG4Address
+  TargetSubnetId  Int
   ContentLen      Int
-  Content         Int[]
+  Raw             Bytes
 }
 
 model OutgoingMsg {
-  Id              String              @id @map("_id")
+  Id              BigInt              @id @default(autoincrement()) @map("_id")
   TimeReceived    BigInt
   OpCode          Int
-  TargetDevice    SmartG4Address
+  TargetDeviceId  Int  // SmartG4Address
+  TargetSubnetId  Int
   ContentLen      Int
   Content         Bytes
   CRCH            Int
   CRCL            Int 
-  Priority        Priority            @default(NORMAL)
+  Priority        String              @default("NORMAL")
 }

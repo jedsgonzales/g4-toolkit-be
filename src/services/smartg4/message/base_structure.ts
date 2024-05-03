@@ -35,17 +35,10 @@ export class BaseStructure extends RawStructure {
         LEAD_CODES.length + 1,
       ).readUInt8(0);
 
-      const [
-        oSubId,
-        oDevId,
-        oTypeH,
-        oTypeL,
-        opCodeH,
-        opCodeL,
-        tSubId,
-        tDevId,
-        ...content
-      ] = this.Data.subarray(LEAD_CODES.length + 1);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const [oTypeH, oTypeL, opCodeH, opCodeL, tSubId, tDevId, ...content] =
+        this.Data.subarray(LEAD_CODES.length + 3);
 
       this.TargetAddress = {
         SubnetId: tSubId,

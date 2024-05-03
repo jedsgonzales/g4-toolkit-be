@@ -1,2 +1,1 @@
-export * from './string';
 export * from './smart_g4';

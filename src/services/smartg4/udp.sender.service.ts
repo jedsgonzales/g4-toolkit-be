@@ -7,14 +7,14 @@ export class UdpSender {
   isClosed = false;
 
   constructor(
-    private port: number,
-    private ip: string,
+    private destPort: number,
+    private destIp: string,
   ) {}
 
   sendSocketMsg(msg: Buffer, onFailure?: (err: Error, bytes: number) => void) {
     this.socket = dgram.createSocket('udp4');
 
-    this.socket.send(msg, this.port, this.ip, (err, b) => {
+    this.socket.send(msg, this.destPort, this.destIp, (err, b) => {
       if (err) {
         console.log('UDP socket error:', err);
         this.socket.close();

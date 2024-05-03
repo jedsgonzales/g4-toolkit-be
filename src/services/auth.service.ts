@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import { UsersService } from './db/users.service';
 import { jwtConstants } from 'src/constants/jwt';
 import type { AuthResult } from '@graphql';
+import crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +26,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const hasher = new Bun.CryptoHasher('md5');
+    const hasher = crypto.createHash('md5');
     hasher.update(`${user.Password}${user.LoginKey}`);
     const obsPass = hasher.digest('hex');
 

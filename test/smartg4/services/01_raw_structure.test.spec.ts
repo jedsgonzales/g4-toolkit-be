@@ -1,6 +1,6 @@
 import { RawStructure } from '@services';
 import { test, describe, expect } from 'bun:test';
-import relayQueryPacket from '../packet_samples/query_relay';
+import relayQueryPacket from '../packet_samples/0x0031_query_relay';
 import { SOURCE_IP } from '../packet_samples';
 import { SMARTCLOUD } from '@constants';
 

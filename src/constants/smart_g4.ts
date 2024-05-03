@@ -1,14 +1,10 @@
-import {
-  BaseStructure,
-  CurtainControlChannel,
-  DimmerChannel,
-  MalformedSmartG4MessageError,
-  packCRC,
-  RelayChannel,
-} from '@services';
+import { createSourceIp } from '@utils';
 
 export const SMARTCLOUD = Buffer.from('SMARTCLOUD');
 export const LEAD_CODES = Buffer.from([0xaa, 0xaa]);
+
+export const SYSTEM_IP = process.env['SMARTG4_SENDER_IP'] || '0.0.0.0';
+export const SMARTG4_SENDER_IP = createSourceIp(SYSTEM_IP);
 
 export const CRC_TABLE = [
   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, 0x8108,
@@ -42,203 +38,28 @@ export const CRC_TABLE = [
   0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
 ];
 
-export const SUBNETS = (process.env['SMART_G4_SUBNETS'] || '1')
+export const ALLOW_SUBNETS = (process.env['SMART_G4_SUBNETS'] || '1')
   .split(',')
   .map((s) => parseInt(s, 10));
 
-export const senderOpCodeMap = {
-  '0x0031': (channel: number, brightness: number, runningTime: number) => {
-    const data = [channel, brightness, runningTime >> 8, runningTime & 0x00ff];
+export enum TEMP_UNIT {
+  CELSIUS = 0,
+  FAHRENHEIT = 1,
+}
 
-    // prepend length
-    data.unshift(data.length);
+export enum DRY_CONTACT_TYPE {
+  NORMALLY_CLOSED = 0,
+  NORMALLY_OPEN = 1,
+}
 
-    const crc = packCRC(Buffer.from(data), data.length);
+export enum DRY_CONTACT_STATUS {
+  CLOSED = 0,
+  OPEN = 1,
+}
 
-    return Buffer.from([...data, ...crc]);
-  },
-  '0xdc1c': (channel: number, runningTime: number) => {
-    const data = [channel, 0, runningTime >> 8, runningTime & 0x00ff];
-
-    // prepend length
-    data.unshift(data.length);
-
-    const crc = packCRC(Buffer.from(data), data.length);
-
-    return Buffer.from([...data, ...crc]);
-  },
-};
-
-/**
- * All response code map function arguments must be of the form:
- * [dataLength, ...data, crcH, crcL]
- */
-export const responseOpCodeMap = {
-  '0x0032': (packet: BaseStructure) => {
-    const channelStatus: (
-      | DimmerChannel
-      | RelayChannel
-      | CurtainControlChannel
-    )[] = [];
-
-    const [channel, result, percentage] = packet.Content;
-
-    if (packet.Length > 3) {
-      const qtyOfChannels = packet.Content.subarray(3).readUInt8(0);
-      const channelsData = packet.Content.subarray(4, packet.Length);
-
-      // parse all channel status, bit by bit
-
-      const bytesCount = Math.ceil(qtyOfChannels / 8);
-      for (
-        let i = 0;
-        i < bytesCount && channelStatus.length < qtyOfChannels;
-        i++
-      ) {
-        const byte = channelsData.readUInt8(i);
-        for (let j = 0; j < 8 && channelStatus.length < qtyOfChannels; j++) {
-          const channelPos = i * 8 + j + 1;
-          const status = byte & (1 << j) ? 100 : 0;
-
-          if (channelPos === channel && percentage > 1) {
-            // most probably a dimmer channel that uses 0 to 100 value
-            // relay is only using 0 and 1 to state power status
-            channelStatus.push(
-              new DimmerChannel({
-                ChannelNo: channelPos,
-                Status: !!status,
-                Percentage: percentage,
-              }),
-            );
-          } else {
-            channelStatus.push(
-              new RelayChannel({ ChannelNo: channelPos, Status: !!status }),
-            );
-          }
-        }
-      }
-
-      // by device type + channel number conditions
-      // DeviceType:
-      //    0x139c or 5020 is SB-ZMIX23-DN Zone Beast 23 port Mix Control Module
-      if (packet.DeviceType === 0x139c && [13, 14].includes(channel)) {
-        // this is curtain control
-
-        let curtainStatus = percentage;
-        if (percentage === 0) {
-          // obtain open staus of curtain at byte before crc values
-          curtainStatus = packet.Content.subarray(
-            packet.Content.length - 3,
-            packet.Content.length - 2,
-          ).readUint8(0);
-        }
-
-        /**
-         * at some point, the other curtain control will still be classified
-         * as relay until we detect that it is a curtain control
-         */
-        const index = channelStatus.findIndex((c) => c.ChannelNo === channel);
-        const newChannel = new CurtainControlChannel({
-          ChannelNo: channel,
-          Status: percentage > 0,
-          Percentage: curtainStatus,
-        });
-
-        if (index > -1) {
-          channelStatus[index] = newChannel;
-        } else {
-          channelStatus.push(newChannel);
-        }
-      } else {
-        // this is relay reporting, no changes
-      }
-    } else {
-      // only the dimmer status is present if content length is only 3
-      channelStatus.push(
-        new DimmerChannel({
-          ChannelNo: channel,
-          Status: percentage > 1,
-          Percentage: percentage,
-        }),
-      );
-    }
-
-    return {
-      channels: channelStatus,
-      success: result === 0xf8,
-    };
-  },
-
-  '0x0034': (data: Buffer) => {
-    const [length, channels] = data;
-
-    if (length !== data.length) {
-      throw new MalformedSmartG4MessageError(
-        'Dimmer response 0x0034 length invalid',
-      );
-    }
-
-    // parse all channel status
-    const channelStatus: { channel: number; status: number }[] = [];
-    for (let i = 0; i < channels; i++) {
-      const channel = i + 1;
-      const brightness = data.readUInt8(i + 2);
-      channelStatus.push({ channel, status: brightness });
-    }
-
-    return {
-      channels: channelStatus,
-    };
-  },
-
-  '0xefff': (data: Buffer) => {
-    const [length, qtyOfZones] = data;
-
-    if (length !== data.length) {
-      throw new MalformedSmartG4MessageError(
-        'Dimmer/Relay/Zone Beast response 0xefff length invalid',
-      );
-    }
-
-    /* const zonesData = data.subarray(2, 2 + qtyOfZones); */
-    const qtyOfChannels = data.subarray(2 + qtyOfZones).readUInt8(0);
-    const channelsData = data.subarray(3 + qtyOfZones, length);
-
-    // parse all channel status, bit by bit
-    const channelStatus: { channel: number; status: number }[] = [];
-
-    const bytesCount = Math.ceil(qtyOfChannels / 8);
-    for (
-      let i = 0;
-      i < bytesCount && channelStatus.length < qtyOfChannels;
-      i++
-    ) {
-      const byte = channelsData.readUInt8(i);
-      for (let j = 0; j < 8 && channelStatus.length < qtyOfChannels; j++) {
-        const channel = i * 8 + j + 1;
-        const status = byte & (1 << j) ? 100 : 0;
-
-        channelStatus.push({ channel, status });
-      }
-    }
-
-    return {
-      channels: channelStatus,
-    };
-  },
-
-  '0xdc1d': (data: Buffer) => {
-    const [length, channel, result] = data;
-
-    if (length !== data.length) {
-      throw new MalformedSmartG4MessageError(
-        'Dimmer response 0xdc1d length invalid',
-      );
-    }
-
-    return {
-      channel,
-      success: result === 0xf8,
-    };
-  },
-};
+export enum SystemFilterAction {
+  ALLOW = 'allow',
+  BLOCK = 'block',
+  DROP = 'ignore',
+  PENDING = 'pending',
+}

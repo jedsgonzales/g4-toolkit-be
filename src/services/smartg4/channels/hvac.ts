@@ -1,23 +1,27 @@
-import { Channel } from './channel';
-import { smartG4UdpSender } from '../sender.service';
-import { OverrideOpts, VarSwitchState } from '@localtypes';
+import { HVACState, HVACStateControl, OverrideOpts } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
+import { smartG4UdpSender } from '../sender.service';
+import { Channel } from './channel';
 import { Device } from '../device';
 
-interface VarSwitchControl extends VarSwitchState {
-  RunningTime?: number;
-}
-export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
-  constructor(props: VarSwitchState, channel: number, device?: Device) {
-    super(props);
+export class HVAC extends Channel<HVACState, HVACStateControl> {
+  AcNo: number;
 
+  constructor(state: HVACState, acNo: number = 1, device?: Device) {
+    super({ ...state });
+
+    this.State = state;
+    this.AcNo = acNo;
     this.ChannelDevice = device;
-    this.ChannelNo = channel;
-    this.TypeName = 'Dimmer';
+    this.TypeName = 'HVAC';
   }
 
+  /**
+   * Default query as a relay channel.
+   * @param param0
+   */
   public queryStatus({ UseAddress, UseType }: OverrideOpts) {
-    const msg = senderOpCodeMap['0x0033']({
+    const msg = senderOpCodeMap['0xe0ec']({
       Target: {
         address: UseAddress || {
           SubnetId: this.ChannelDevice.SubnetId,
@@ -29,18 +33,19 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
-      console.error('Error sending query status message', err, bytes);
+      console.error('Error sending HVAC query status message', err, bytes);
     });
+
+    return msg;
   }
 
-  setState({
+  public setState({
     UseAddress,
     UseType,
-    RunningTime,
     Status,
-    Percentage,
-  }: OverrideOpts & VarSwitchControl): Buffer {
-    const msg = senderOpCodeMap['0x0031']({
+    ...rest
+  }: OverrideOpts & HVACStateControl) {
+    const msg = senderOpCodeMap['0x193a']({
       Target: {
         address: UseAddress || {
           SubnetId: this.ChannelDevice.SubnetId,
@@ -50,8 +55,8 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
       },
       ChannelNo: this.ChannelNo,
       Status,
-      Percentage: Percentage,
-      RunningTime: RunningTime || 0,
+      AcNo: this.AcNo,
+      ...rest,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
@@ -61,7 +66,5 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
         bytes,
       );
     });
-
-    return msg;
   }
 }
