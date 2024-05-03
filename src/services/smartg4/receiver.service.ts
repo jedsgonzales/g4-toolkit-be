@@ -62,7 +62,7 @@ export class SmartG4Reciever {
                   TargetDeviceId: baseParse.TargetAddress.DeviceId,
                   TargetSubnetId: baseParse.TargetAddress.SubnetId,
                   ContentLen: baseParse.Length,
-                  Content: baseParse.Content,
+                  Raw: baseParse.Raw,
                 },
               }));
           }
