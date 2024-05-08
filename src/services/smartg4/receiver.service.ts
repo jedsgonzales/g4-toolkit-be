@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 import { BaseStructure } from './message';
 import { UdpListener } from './udp.listener.service';
 import { SYSTEM_IP, SystemFilterAction } from '@constants';
+import { responseOpCodeMap } from '@utils';
 
 export class SmartG4Reciever {
   listener: UdpListener;
@@ -47,6 +48,14 @@ export class SmartG4Reciever {
             );
           } else if (baseParse.OriginIp === SYSTEM_IP) {
             // ignore from own IP
+          } else if (!responseOpCodeMap[`0x${baseParse.OpCode.toString(16)}`]) {
+            // ignore un mapped op codes
+            console.log(
+              'Packet is dropped by OpCode mapping',
+              baseParse.OriginIp,
+              baseParse.OriginAddress,
+              baseParse.OpCode.toString(16),
+            );
           } else {
             const moment = DateTime.utc().toMillis();
 

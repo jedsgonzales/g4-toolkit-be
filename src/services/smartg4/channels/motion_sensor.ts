@@ -1,18 +1,21 @@
 import { MotionSensorState, OverrideOpts } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
 import { smartG4UdpSender } from '../sender.service';
-import { Channel } from './channel';
-import { Device } from '../device';
+import { ChannelNode } from './channel.node';
+import { NetworkDevice } from '@internal/prisma/smartg4';
 
-export class MotionSensor extends Channel<MotionSensorState, null> {
-  SensorNo: number;
-
-  constructor(state: MotionSensorState, sensor: number, device?: Device) {
+export const MotionSensorType = 'MotionSensor';
+export class MotionSensor extends ChannelNode<MotionSensorState, null> {
+  constructor(
+    state: MotionSensorState,
+    sensor: number,
+    device?: NetworkDevice,
+  ) {
     super(state);
 
-    this.ChannelDevice = device;
-    this.SensorNo = sensor;
-    this.TypeName = 'MotionSensor';
+    this.NetworkDevice = device;
+    this.NodeNo = sensor;
+    this.NodeType = MotionSensorType;
   }
 
   /**
@@ -23,12 +26,12 @@ export class MotionSensor extends Channel<MotionSensorState, null> {
     const msg = senderOpCodeMap['0xdb00']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.DeviceType,
       },
-      ChannelNo: this.ChannelNo,
+      ChannelNo: this.NodeNo,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
@@ -40,10 +43,10 @@ export class MotionSensor extends Channel<MotionSensorState, null> {
     /* const msg = senderOpCodeMap['0x0031']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.Type,
       },
       ChannelNo: this.ChannelNo,
       Status,

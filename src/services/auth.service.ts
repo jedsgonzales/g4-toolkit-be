@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DateTime } from 'luxon';
-import { UsersService } from './db/users.service';
+import { UserService } from './db/users.service';
 import { jwtConstants } from 'src/constants/jwt';
 import type { AuthResult } from '@graphql';
 import crypto from 'crypto';
@@ -9,7 +9,7 @@ import crypto from 'crypto';
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
+    private usersService: UserService,
     private jwtService: JwtService,
   ) {}
 

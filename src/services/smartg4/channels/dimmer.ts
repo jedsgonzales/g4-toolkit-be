@@ -1,31 +1,33 @@
-import { Channel } from './channel';
-import { smartG4UdpSender } from '../sender.service';
+import { NetworkDevice } from '@internal/prisma/smartg4';
 import { OverrideOpts, VarSwitchState } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
-import { Device } from '../device';
+import { smartG4UdpSender } from '../sender.service';
+import { ChannelNode } from './channel.node';
 
 interface VarSwitchControl extends VarSwitchState {
   RunningTime?: number;
 }
-export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
-  constructor(props: VarSwitchState, channel: number, device?: Device) {
+
+export const DimmerType = 'Dimmer';
+export class Dimmer extends ChannelNode<VarSwitchState, VarSwitchControl> {
+  constructor(props: VarSwitchState, channel: number, device?: NetworkDevice) {
     super(props);
 
-    this.ChannelDevice = device;
-    this.ChannelNo = channel;
-    this.TypeName = 'Dimmer';
+    this.NetworkDevice = device;
+    this.NodeNo = channel;
+    this.NodeType = DimmerType;
   }
 
   public queryStatus({ UseAddress, UseType }: OverrideOpts) {
     const msg = senderOpCodeMap['0x0033']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.DeviceType,
       },
-      ChannelNo: this.ChannelNo,
+      ChannelNo: this.NodeNo,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
@@ -43,12 +45,12 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
     const msg = senderOpCodeMap['0x0031']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.DeviceType,
       },
-      ChannelNo: this.ChannelNo,
+      ChannelNo: this.NodeNo,
       Status,
       Percentage: Percentage,
       RunningTime: RunningTime || 0,
@@ -56,7 +58,7 @@ export class DimmerChannel extends Channel<VarSwitchState, VarSwitchControl> {
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
       console.error(
-        `Error sending ${this.TypeName} set state message`,
+        `Error sending ${this.NodeType} set state message`,
         err,
         bytes,
       );

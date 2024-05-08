@@ -6,7 +6,7 @@ import { createString } from 'src/utils/string';
 import crypto from 'crypto';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @Inject('DB_CONNECTION')
     private readonly prisma: SmartG4DbClient,

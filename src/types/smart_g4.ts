@@ -47,3 +47,8 @@ export interface DryContactState {
 export interface MotionSensorState {
   MotionDetected: boolean;
 }
+
+export interface TempSensorState {
+  CurrentTemp: number;
+  TempUnit: TEMP_UNIT;
+}

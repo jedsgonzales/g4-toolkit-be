@@ -2,14 +2,14 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '@services';
+import { UserService } from '@services';
 import type { Request } from 'express';
 import { jwtConstants } from 'src/constants/jwt';
 
 @Injectable()
 export class AuthAdminGuard implements CanActivate {
   constructor(
-    private userService: UsersService,
+    private userService: UserService,
     private jwtService: JwtService,
   ) {}
 

@@ -1,13 +1,14 @@
 import { VarSwitchState } from '@localtypes';
-import { DimmerChannel } from './dimmer';
-import { Device } from '../device';
+import { Dimmer } from './dimmer';
+import { NetworkDevice } from '@internal/prisma/smartg4';
 
-export class CurtainControlChannel extends DimmerChannel {
-  constructor(props: VarSwitchState, channel: number, device?: Device) {
+export const CurtainControlType = 'CurtainControl';
+export class CurtainControl extends Dimmer {
+  constructor(props: VarSwitchState, channel: number, device?: NetworkDevice) {
     super(props, channel, device);
 
-    this.ChannelDevice = device;
-    this.ChannelNo = channel;
-    this.TypeName = 'CurtaineControl';
+    this.NetworkDevice = device;
+    this.NodeNo = channel;
+    this.NodeType = CurtainControlType;
   }
 }

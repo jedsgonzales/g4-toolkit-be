@@ -1,4 +1,6 @@
+import { DimmerType, HVACType, RelayType } from '@services';
 import { createSourceIp } from '@utils';
+import { TemperatureSensorType } from 'src/services/smartg4/channels/temperature_sensor';
 
 export const SMARTCLOUD = Buffer.from('SMARTCLOUD');
 export const LEAD_CODES = Buffer.from([0xaa, 0xaa]);
@@ -43,8 +45,8 @@ export const ALLOW_SUBNETS = (process.env['SMART_G4_SUBNETS'] || '1')
   .map((s) => parseInt(s, 10));
 
 export enum TEMP_UNIT {
-  CELSIUS = 0,
-  FAHRENHEIT = 1,
+  CELSIUS = 1,
+  FAHRENHEIT = 0,
 }
 
 export enum DRY_CONTACT_TYPE {
@@ -63,3 +65,6 @@ export enum SystemFilterAction {
   DROP = 'ignore',
   PENDING = 'pending',
 }
+
+export const TEMP_SENSOR_GROUP = [TemperatureSensorType, HVACType];
+export const SWITCH_GROUP = [RelayType, DimmerType];

@@ -1,8 +1,8 @@
 import {
   BaseStructure,
-  CurtainControlChannel,
-  DimmerChannel,
-  RelayChannel,
+  CurtainControl,
+  Dimmer,
+  Relay,
 } from '@services';
 import { describe, expect, test } from 'bun:test';
 
@@ -23,10 +23,10 @@ describe('SmartG4 Message Parsing', () => {
 
     expect(result.success).toBe(true);
     expect(result.channels.length).toEqual(1);
-    expect(result.channels[0] instanceof DimmerChannel).toBe(true);
-    expect(result.channels[0].ChannelNo).toEqual(3);
+    expect(result.channels[0] instanceof Dimmer).toBe(true);
+    expect(result.channels[0].NodeNo).toEqual(3);
     expect(result.channels[0].State.Status).toEqual(true);
-    expect((result.channels[0] as DimmerChannel).State.Percentage).toEqual(50);
+    expect((result.channels[0] as Dimmer).State.Percentage).toEqual(50);
   });
 
   test('0x0032 15 Channel Relay Response', () => {
@@ -39,8 +39,8 @@ describe('SmartG4 Message Parsing', () => {
 
     const poweredOnChannels = [1, 3, 6, 10];
     for (let i = 0; i < result.channels.length; i++) {
-      expect(result.channels[i] instanceof RelayChannel).toBe(true);
-      expect(result.channels[i].ChannelNo).toEqual(i + 1);
+      expect(result.channels[i] instanceof Relay).toBe(true);
+      expect(result.channels[i].NodeNo).toEqual(i + 1);
       expect(result.channels[i].State.Status).toBe(
         poweredOnChannels.includes(i + 1),
       );
@@ -57,8 +57,8 @@ describe('SmartG4 Message Parsing', () => {
 
     const poweredOnChannels = [1, 3, 6, 10, 20];
     for (let i = 0; i < result.channels.length; i++) {
-      expect(result.channels[i] instanceof RelayChannel).toBe(true);
-      expect(result.channels[i].ChannelNo).toEqual(i + 1);
+      expect(result.channels[i] instanceof Relay).toBe(true);
+      expect(result.channels[i].NodeNo).toEqual(i + 1);
       expect(result.channels[i].State.Status).toBe(
         poweredOnChannels.includes(i + 1),
       );
@@ -76,18 +76,18 @@ describe('SmartG4 Message Parsing', () => {
     const poweredOnChannels = [1, 3, 6, 10, 20];
     const curtainChannel = 13;
     for (let i = 0; i < result.channels.length; i++) {
-      expect(result.channels[i].ChannelNo).toEqual(i + 1);
+      expect(result.channels[i].NodeNo).toEqual(i + 1);
 
       if (i + 1 === curtainChannel) {
-        expect(result.channels[i] instanceof CurtainControlChannel).toBe(true);
-        expect((result.channels[i] as CurtainControlChannel).State.Status).toBe(
+        expect(result.channels[i] instanceof CurtainControl).toBe(true);
+        expect((result.channels[i] as CurtainControl).State.Status).toBe(
           true,
         );
         expect(
-          (result.channels[i] as CurtainControlChannel).State.Percentage,
+          (result.channels[i] as CurtainControl).State.Percentage,
         ).toEqual(50);
       } else {
-        expect(result.channels[i] instanceof RelayChannel).toBe(true);
+        expect(result.channels[i] instanceof Relay).toBe(true);
         expect(result.channels[i].State.Status).toBe(
           poweredOnChannels.includes(i + 1),
         );
@@ -106,18 +106,18 @@ describe('SmartG4 Message Parsing', () => {
     const poweredOnChannels = [1, 3, 6, 10, 20];
     const curtainChannel = 14;
     for (let i = 0; i < result.channels.length; i++) {
-      expect(result.channels[i].ChannelNo).toEqual(i + 1);
+      expect(result.channels[i].NodeNo).toEqual(i + 1);
 
       if (i + 1 === curtainChannel) {
-        expect(result.channels[i] instanceof CurtainControlChannel).toBe(true);
-        expect((result.channels[i] as CurtainControlChannel).State.Status).toBe(
+        expect(result.channels[i] instanceof CurtainControl).toBe(true);
+        expect((result.channels[i] as CurtainControl).State.Status).toBe(
           false,
         );
         expect(
-          (result.channels[i] as CurtainControlChannel).State.Percentage,
+          (result.channels[i] as CurtainControl).State.Percentage,
         ).toEqual(50);
       } else {
-        expect(result.channels[i] instanceof RelayChannel).toBe(true);
+        expect(result.channels[i] instanceof Relay).toBe(true);
         expect(result.channels[i].State.Status).toBe(
           poweredOnChannels.includes(i + 1),
         );

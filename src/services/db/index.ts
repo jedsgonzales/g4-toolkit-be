@@ -12,3 +12,5 @@ export const prismaService = createExtendedPrisma(new PrismaClient());
 export type SmartG4DbClient = ReturnType<typeof createExtendedPrisma>;
 
 export * from './users.service';
+export * from './device.service';
+export * from './channel.node.service';

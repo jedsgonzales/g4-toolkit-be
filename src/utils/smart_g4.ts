@@ -2,16 +2,18 @@ import {
   packCRC,
   BaseStructure,
   MalformedSmartG4MessageError,
-  DimmerChannel,
-  RelayChannel,
-  CurtainControlChannel,
+  Dimmer,
+  Relay,
+  CurtainControl,
   HVAC,
+  ChannelNode,
 } from '@services';
 import { isIPv4 } from 'net';
 import { HVACStateControl, SenderOpts } from '@localtypes';
 import { DryContact } from 'src/services/smartg4/channels/dry_contact';
 import { DRY_CONTACT_STATUS, DRY_CONTACT_TYPE, TEMP_UNIT } from '@constants';
 import { MotionSensor } from 'src/services/smartg4/channels/motion_sensor';
+import { TemperatureSensor } from 'src/services/smartg4/channels/temperature_sensor';
 
 export const createSourceIp = (ip: string) => {
   if (isIPv4(ip)) {
@@ -216,7 +218,10 @@ export const senderOpCodeMap = {
  * All response code map function arguments must be of the form:
  * [dataLength, ...data, crcH, crcL]
  */
-export const responseOpCodeMap = {
+export interface ResponseOpCodeMap {
+  [key: string]: (packet: BaseStructure) => ChannelNode<any, any>[];
+}
+export const responseOpCodeMap: ResponseOpCodeMap = {
   '0x0032': (packet: BaseStructure) => {
     if (packet.OpCode !== 0x0032) {
       throw new MalformedSmartG4MessageError(
@@ -225,12 +230,12 @@ export const responseOpCodeMap = {
     }
 
     const channelStatus: (
-      | DimmerChannel
-      | RelayChannel
-      | CurtainControlChannel
+      | Dimmer
+      | Relay
+      | CurtainControl
     )[] = [];
 
-    const [channel, result, percentage] = packet.Content;
+    const [channel, percentage] = packet.Content;
 
     if (packet.Content.length > 3) {
       const qtyOfChannels = packet.Content.subarray(3).readUInt8(0);
@@ -253,7 +258,7 @@ export const responseOpCodeMap = {
             // most probably a dimmer channel that uses 0 to 100 value
             // relay is only using 0 and 1 to state power status
             channelStatus.push(
-              new DimmerChannel(
+              new Dimmer(
                 {
                   Status: !!status,
                   Percentage: percentage,
@@ -263,7 +268,7 @@ export const responseOpCodeMap = {
             );
           } else {
             channelStatus.push(
-              new RelayChannel({ Status: !!status }, channelPos),
+              new Relay({ Status: !!status }, channelPos),
             );
           }
         }
@@ -288,8 +293,8 @@ export const responseOpCodeMap = {
          * at some point, the other curtain control will still be classified
          * as relay until we detect that it is a curtain control
          */
-        const index = channelStatus.findIndex((c) => c.ChannelNo === channel);
-        const newChannel = new CurtainControlChannel(
+        const index = channelStatus.findIndex((c) => c.NodeNo === channel);
+        const newChannel = new CurtainControl(
           {
             Status: percentage > 0,
             Percentage: curtainStatus,
@@ -308,7 +313,7 @@ export const responseOpCodeMap = {
     } else {
       // only the dimmer status is present if content length is only 3
       channelStatus.push(
-        new DimmerChannel(
+        new Dimmer(
           {
             Status: percentage > 0,
             Percentage: percentage,
@@ -318,10 +323,7 @@ export const responseOpCodeMap = {
       );
     }
 
-    return {
-      channels: channelStatus,
-      success: result === 0xf8,
-    };
+    return channelStatus;
   },
 
   '0x0034': (packet: BaseStructure) => {
@@ -335,16 +337,16 @@ export const responseOpCodeMap = {
 
     // parse all channel status
     const channelStatus: (
-      | DimmerChannel
-      | RelayChannel
-      | CurtainControlChannel
+      | Dimmer
+      | Relay
+      | CurtainControl
     )[] = [];
 
     for (let i = 0; i < channels; i++) {
       const channel = i + 1;
       const percentage = packet.Content.readUInt8(i + 1);
       channelStatus.push(
-        new DimmerChannel(
+        new Dimmer(
           {
             Status: percentage > 0,
             Percentage: percentage,
@@ -354,9 +356,7 @@ export const responseOpCodeMap = {
       );
     }
 
-    return {
-      channels: channelStatus,
-    };
+    return channelStatus;
   },
 
   '0xefff': (packet: BaseStructure) => {
@@ -377,9 +377,9 @@ export const responseOpCodeMap = {
 
     // parse all channel status, bit by bit
     const channelStatus: (
-      | DimmerChannel
-      | RelayChannel
-      | CurtainControlChannel
+      | Dimmer
+      | Relay
+      | CurtainControl
     )[] = [];
 
     const bytesCount = Math.ceil(qtyOfChannels / 8);
@@ -394,7 +394,7 @@ export const responseOpCodeMap = {
         const status = byte & (1 << j) ? 100 : 0;
 
         channelStatus.push(
-          new RelayChannel(
+          new Relay(
             {
               Status: status > 0,
             },
@@ -404,9 +404,7 @@ export const responseOpCodeMap = {
       }
     }
 
-    return {
-      channels: channelStatus,
-    };
+    return channelStatus;
   },
 
   '0x193b': (packet: BaseStructure) => {
@@ -437,12 +435,10 @@ export const responseOpCodeMap = {
       ),
     );
 
-    return {
-      channels: channelStatus,
-    };
+    return channelStatus;
   },
 
-  '0xdc1d': (packet: BaseStructure) => {
+  /* '0xdc1d': (packet: BaseStructure) => {
     if (packet.OpCode !== 0xdc1d) {
       throw new MalformedSmartG4MessageError(
         `Expected OpCode 0xdc1d, got ${packet.OpCode.toString(16)}`,
@@ -455,7 +451,7 @@ export const responseOpCodeMap = {
       channel,
       success: result === 0xf8,
     };
-  },
+  }, */
 
   '0xe3e8': (packet: BaseStructure) => {
     // temp sensor passive status report
@@ -465,12 +461,14 @@ export const responseOpCodeMap = {
       );
     }
 
-    const [temp, unit] = packet.Content;
+    const [unit, temp] = packet.Content;
 
-    return {
-      temparature: temp,
-      tempUnit: unit === 0 ? 'C' : 'F',
-    };
+    return [
+      new TemperatureSensor({
+        CurrentTemp: temp,
+        TempUnit: unit === 1 ? TEMP_UNIT.CELSIUS : TEMP_UNIT.FAHRENHEIT,
+      }),
+    ];
   },
 
   '0x012d': (packet: BaseStructure) => {
@@ -510,9 +508,7 @@ export const responseOpCodeMap = {
       );
     }
 
-    return {
-      channels: channelStatus,
-    };
+    return channelStatus;
   },
 
   '0xdc22': (packet: BaseStructure) => {
@@ -547,9 +543,7 @@ export const responseOpCodeMap = {
       );
     }
 
-    return {
-      channels: channelStatus,
-    };
+    return channelStatus;
   },
 
   '0xdb01': (packet: BaseStructure) => {
@@ -594,8 +588,6 @@ export const responseOpCodeMap = {
       );
     }
 
-    return {
-      channels: channelStatus,
-    };
+    return channelStatus;
   },
 };

@@ -1,10 +1,19 @@
+import { SWITCH_GROUP, TEMP_SENSOR_GROUP } from '@constants';
 import { Inject } from '@nestjs/common';
-import type { SmartG4DbClient } from '@services';
+import {
+  BaseStructure,
+  createChannelNode,
+  type DeviceService,
+  type SmartG4DbClient,
+} from '@services';
+import { responseOpCodeMap } from '@utils';
+import { pause } from 'src/utils/pause';
 
 export class IncomingParser {
   shutdown = false;
   constructor(
     @Inject('DB_CONNECTION') private readonly prismaService: SmartG4DbClient,
+    private readonly deviceService: DeviceService,
   ) {}
 
   async startMonitoring() {
@@ -16,6 +25,18 @@ export class IncomingParser {
         },
       });
 
+      if (!top) {
+        await pause(1000);
+        continue;
+      }
+
+      console.log('bulk processing messages from', {
+        TargetDeviceId: top.TargetDeviceId,
+        TargetSubnetId: top.TargetSubnetId,
+        DeviceType: top.DeviceType,
+        SenderIp: top.SenderIp,
+      });
+
       const bulk = await this.prismaService.incomingMsg.findMany({
         take: 9999,
         orderBy: {
@@ -25,11 +46,108 @@ export class IncomingParser {
           TargetDeviceId: top.TargetDeviceId,
           TargetSubnetId: top.TargetSubnetId,
           DeviceType: top.DeviceType,
+          SenderIp: top.SenderIp,
         },
       });
 
       for (const incomingMsg of bulk) {
-        console.log('Entry', incomingMsg.Id);
+        console.log('incoming message', incomingMsg.Id);
+
+        const packet = new BaseStructure(incomingMsg.Raw);
+        const opCode = `0x${packet.OpCode.toString(16)}`;
+
+        console.log('incoming opcode', opCode);
+
+        if (responseOpCodeMap[opCode]) {
+          console.log('\tcalling opcode handler', opCode);
+          const channelList = responseOpCodeMap[opCode](packet);
+
+          const device = await this.deviceService.findOrCreate({
+            ip: incomingMsg.SenderIp,
+            subnetId: incomingMsg.TargetSubnetId,
+            deviceId: incomingMsg.TargetDeviceId,
+            type: incomingMsg.DeviceType,
+          });
+
+          for (const channelNode of channelList) {
+            let node = device.Channels.find(
+              (channel) =>
+                channel.NodeNo === channelNode.NodeNo &&
+                channel.NodeType === channelNode.NodeType,
+            );
+
+            let nodeUpdated = false;
+            if (!node) {
+              // detect variance, update as necessary
+              if (TEMP_SENSOR_GROUP.includes(channelNode.NodeType)) {
+                node = device.Channels.find(
+                  (channel) =>
+                    channel.NodeNo === channelNode.NodeNo &&
+                    TEMP_SENSOR_GROUP.includes(channel.NodeType),
+                );
+
+                if (
+                  node &&
+                  TEMP_SENSOR_GROUP.indexOf(node.NodeType) <
+                    TEMP_SENSOR_GROUP.indexOf(channelNode.NodeType)
+                ) {
+                  node.NodeType = channelNode.NodeType;
+                  nodeUpdated = true;
+                }
+              } else if (SWITCH_GROUP.includes(channelNode.NodeType)) {
+                node = device.Channels.find(
+                  (channel) =>
+                    channel.NodeNo === channelNode.NodeNo &&
+                    SWITCH_GROUP.includes(channel.NodeType),
+                );
+
+                if (
+                  node &&
+                  SWITCH_GROUP.indexOf(node.NodeType) <
+                    SWITCH_GROUP.indexOf(channelNode.NodeType)
+                ) {
+                  node.NodeType = channelNode.NodeType;
+                  nodeUpdated = true;
+                }
+              }
+            }
+
+            console.log('node parsed', node);
+            console.log('node type', node?.NodeType || channelNode.NodeType);
+            const nodeInstance = createChannelNode(
+              node?.NodeType || channelNode.NodeType,
+              node?.Status.map((status) => ({
+                [status.StateName]: status.StateValue,
+              })) || channelNode.State,
+              node?.NodeNo || channelNode.NodeNo,
+              device,
+            );
+
+            if (node) {
+              nodeInstance.Id = node.Id;
+              nodeInstance.updateState(channelNode.State);
+            }
+
+            if (!node || nodeUpdated) {
+              console.log('node syncing...');
+              await nodeInstance.syncNode();
+            }
+
+            console.log('node syncing state...');
+            await nodeInstance.syncState();
+          }
+        } else {
+          console.log('\tunhandled opcode', opCode);
+        }
+
+        await pause(100);
+        await this.prismaService.incomingMsg.delete({
+          where: {
+            Id: incomingMsg.Id,
+          },
+        });
+
+        // await pause(100);
       }
     }
   }

@@ -1,18 +1,17 @@
 import { DryContactState, OverrideOpts } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
 import { smartG4UdpSender } from '../sender.service';
-import { Channel } from './channel';
-import { Device } from '../device';
+import { ChannelNode } from './channel.node';
+import { NetworkDevice } from '@internal/prisma/smartg4';
 
-export class DryContact extends Channel<DryContactState, null> {
-  ContactNo: number;
-
-  constructor(state: DryContactState, contact: number, device?: Device) {
+export const DryContactType = 'DryContact';
+export class DryContact extends ChannelNode<DryContactState, null> {
+  constructor(state: DryContactState, contact: number, device?: NetworkDevice) {
     super(state);
 
-    this.ChannelDevice = device;
-    this.ContactNo = contact;
-    this.TypeName = 'DryContact';
+    this.NetworkDevice = device;
+    this.NodeNo = contact;
+    this.NodeType = DryContactType;
   }
 
   /**
@@ -23,12 +22,12 @@ export class DryContact extends Channel<DryContactState, null> {
     const msg = senderOpCodeMap['0x012c']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.DeviceType,
       },
-      ChannelNo: this.ChannelNo,
+      ChannelNo: this.NodeNo,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
@@ -40,10 +39,10 @@ export class DryContact extends Channel<DryContactState, null> {
     /* const msg = senderOpCodeMap['0x0031']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.Type,
       },
       ChannelNo: this.ChannelNo,
       Status,

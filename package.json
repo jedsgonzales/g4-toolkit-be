@@ -20,7 +20,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "receiver": "ts-node -r tsconfig-paths/register ./scripts/run_msg_receiver.ts",
+    "listener": "ts-node -r tsconfig-paths/register ./scripts/run_udp_listener.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.10.2",
@@ -82,6 +84,8 @@
     "testEnvironment": "node"
   },
   "ts-node": {
-    "require": ["tsconfig-paths/register"]
+    "require": [
+      "tsconfig-paths/register"
+    ]
   }
 }

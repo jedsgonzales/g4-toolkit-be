@@ -1,19 +1,18 @@
 import { HVACState, HVACStateControl, OverrideOpts } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
 import { smartG4UdpSender } from '../sender.service';
-import { Channel } from './channel';
-import { Device } from '../device';
+import { ChannelNode } from './channel.node';
+import { NetworkDevice } from '@internal/prisma/smartg4';
 
-export class HVAC extends Channel<HVACState, HVACStateControl> {
-  AcNo: number;
-
-  constructor(state: HVACState, acNo: number = 1, device?: Device) {
+export const HVACType = 'HVAC';
+export class HVAC extends ChannelNode<HVACState, HVACStateControl> {
+  constructor(state: HVACState, acNo: number = 1, device?: NetworkDevice) {
     super({ ...state });
 
     this.State = state;
-    this.AcNo = acNo;
-    this.ChannelDevice = device;
-    this.TypeName = 'HVAC';
+    this.NodeNo = acNo;
+    this.NetworkDevice = device;
+    this.NodeType = HVACType;
   }
 
   /**
@@ -24,12 +23,12 @@ export class HVAC extends Channel<HVACState, HVACStateControl> {
     const msg = senderOpCodeMap['0xe0ec']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.DeviceType,
       },
-      ChannelNo: this.ChannelNo,
+      ChannelNo: this.NodeNo,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
@@ -48,20 +47,20 @@ export class HVAC extends Channel<HVACState, HVACStateControl> {
     const msg = senderOpCodeMap['0x193a']({
       Target: {
         address: UseAddress || {
-          SubnetId: this.ChannelDevice.SubnetId,
-          DeviceId: this.ChannelDevice.DeviceId,
+          SubnetId: this.NetworkDevice.SubnetId,
+          DeviceId: this.NetworkDevice.DeviceId,
         },
-        type: UseType || this.ChannelDevice.Type,
+        type: UseType || this.NetworkDevice.DeviceType,
       },
-      ChannelNo: this.ChannelNo,
+      ChannelNo: this.NodeNo,
       Status,
-      AcNo: this.AcNo,
+      AcNo: this.NodeNo,
       ...rest,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
       console.error(
-        `Error sending ${this.TypeName} set state message`,
+        `Error sending ${this.NodeType} set state message`,
         err,
         bytes,
       );

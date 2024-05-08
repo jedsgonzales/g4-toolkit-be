@@ -1,0 +1,107 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { SmartG4DbClient } from '@services';
+import { DateTime } from 'luxon';
+
+@Injectable()
+export class DeviceService {
+  constructor(
+    @Inject('DB_CONNECTION')
+    private readonly prisma: SmartG4DbClient,
+  ) {}
+
+  async find({
+    ip,
+    subnetId,
+    deviceId,
+    type,
+  }: {
+    ip?: string;
+    subnetId: number;
+    deviceId: number;
+    type?: number;
+  }) {
+    return await this.prisma.networkDevice.findFirst({
+      where: {
+        DeviceType: type,
+        SubnetId: subnetId,
+        DeviceId: deviceId,
+        BroadcasterId: ip,
+      },
+      include: {
+        NetworkBroadcaster: true,
+        Channels: true,
+      },
+    });
+  }
+
+  async findOrCreate({
+    ip,
+    subnetId,
+    deviceId,
+    type,
+  }: {
+    ip: string;
+    subnetId: number;
+    deviceId: number;
+    type?: number;
+  }) {
+    let existing = await this.prisma.networkDevice.findFirst({
+      where: {
+        DeviceType: type,
+        SubnetId: subnetId,
+        DeviceId: deviceId,
+        BroadcasterId: ip,
+      },
+      include: {
+        NetworkBroadcaster: true,
+        Channels: {
+          include: {
+            Status: true,
+          },
+        },
+      },
+    });
+
+    if (!existing) {
+      const now = DateTime.utc().toJSDate();
+      const broadcaster = await this.prisma.networkBroadcaster.upsert({
+        where: {
+          Id: ip,
+        },
+        create: {
+          Id: ip,
+          Name: `RSIP ${ip}`,
+          DetectedOn: now,
+          LastMsgOn: now,
+        },
+        update: {
+          LastMsgOn: now,
+        },
+      });
+
+      existing = await this.prisma.networkDevice.create({
+        data: {
+          DeviceType: type,
+          SubnetId: subnetId,
+          DeviceId: deviceId,
+          NetworkBroadcaster: {
+            connect: {
+              Id: broadcaster.Id,
+            },
+          },
+          CustomDesc: '',
+        },
+        include: {
+          NetworkBroadcaster: true,
+          Channels: {
+            include: {
+              Status: true,
+            },
+          },
+        },
+      });
+    }
+
+    return existing;
+  }
+}
