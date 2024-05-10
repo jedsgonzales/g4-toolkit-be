@@ -6,7 +6,7 @@ import {
   type DeviceService,
   type SmartG4DbClient,
 } from '@services';
-import { responseOpCodeMap } from '@utils';
+import { opCodeHex, responseOpCodeMap } from '@utils';
 import { pause } from 'src/utils/pause';
 
 export class IncomingParser {
@@ -54,7 +54,7 @@ export class IncomingParser {
         console.log('incoming message', incomingMsg.Id);
 
         const packet = new BaseStructure(incomingMsg.Raw);
-        const opCode = `0x${packet.OpCode.toString(16)}`;
+        const opCode = opCodeHex(packet.OpCode);
 
         console.log('incoming opcode', opCode);
 

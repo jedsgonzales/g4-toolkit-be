@@ -14,6 +14,7 @@ import { DryContact } from 'src/services/smartg4/channels/dry_contact';
 import { DRY_CONTACT_STATUS, DRY_CONTACT_TYPE, TEMP_UNIT } from '@constants';
 import { MotionSensor } from 'src/services/smartg4/channels/motion_sensor';
 import { TemperatureSensor } from 'src/services/smartg4/channels/temperature_sensor';
+import { OccupancySensor } from 'src/services/smartg4/channels/occupancy.sensor';
 
 export const createSourceIp = (ip: string) => {
   if (isIPv4(ip)) {
@@ -46,6 +47,15 @@ const makePayload = (data: number[]) => {
   const crc = packCRC(Buffer.from(data), data.length);
 
   return Buffer.from([...data, ...crc]);
+};
+
+export const opCodeHex = (val: number) => {
+  let opCodeStr = val.toString(16);
+  if (opCodeStr.length < 4) {
+    opCodeStr = opCodeStr.padStart(4, '0');
+  }
+
+  return `0x${opCodeStr}`;
 };
 
 export const senderOpCodeMap = {
@@ -229,11 +239,7 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
       );
     }
 
-    const channelStatus: (
-      | Dimmer
-      | Relay
-      | CurtainControl
-    )[] = [];
+    const channelStatus: (Dimmer | Relay | CurtainControl)[] = [];
 
     const [channel, percentage] = packet.Content;
 
@@ -267,9 +273,7 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
               ),
             );
           } else {
-            channelStatus.push(
-              new Relay({ Status: !!status }, channelPos),
-            );
+            channelStatus.push(new Relay({ Status: !!status }, channelPos));
           }
         }
       }
@@ -336,11 +340,7 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
     const [channels] = packet.Content;
 
     // parse all channel status
-    const channelStatus: (
-      | Dimmer
-      | Relay
-      | CurtainControl
-    )[] = [];
+    const channelStatus: (Dimmer | Relay | CurtainControl)[] = [];
 
     for (let i = 0; i < channels; i++) {
       const channel = i + 1;
@@ -376,11 +376,7 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
     );
 
     // parse all channel status, bit by bit
-    const channelStatus: (
-      | Dimmer
-      | Relay
-      | CurtainControl
-    )[] = [];
+    const channelStatus: (Dimmer | Relay | CurtainControl)[] = [];
 
     const bytesCount = Math.ceil(qtyOfChannels / 8);
     for (
@@ -587,6 +583,33 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
         ),
       );
     }
+
+    return channelStatus;
+  },
+
+  '0x02fe': (packet: BaseStructure) => {
+    if (packet.OpCode !== 0x02fe) {
+      throw new MalformedSmartG4MessageError(
+        `Expected OpCode 0x02fe, got ${packet.OpCode.toString(16)}`,
+      );
+    }
+
+    // room occupancy status
+    //
+    // <c0 a8 01 64 53 4d 41 52 54 43 4c 4f 55 44 aa aa 0c 01 32 13 b0 02 fe ff ff 00 64 7a>
+    // <c0 a8 01 64 53 4d 41 52 54 43 4c 4f 55 44 aa aa 0c 01 32 13 b0 02 fe ff ff 01 74 5b>
+    //
+    // <c0 a8 01 64 53 4d 41 52 54 43 4c 4f 55 44 aa aa 0c 01 32 13 b0 02 fe ff ff 00 64 7a>
+    // <c0 a8 01 64 53 4d 41 52 54 43 4c 4f 55 44 aa aa 0c 01 32 13 b0 02 fe ff ff 01 74 5b>
+
+    const channelStatus: OccupancySensor[] = [
+      new OccupancySensor(
+        {
+          OccupancyDetected: packet.Content.readUInt8(0) > 0,
+        },
+        1,
+      ),
+    ];
 
     return channelStatus;
   },

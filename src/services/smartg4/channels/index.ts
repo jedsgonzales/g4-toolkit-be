@@ -7,6 +7,7 @@ import { MotionSensor } from './motion_sensor';
 import { Relay } from './relay';
 import { ChannelNode } from './channel.node';
 import { TemperatureSensor } from './temperature_sensor';
+import { OccupancySensor } from './occupancy.sensor';
 
 export * from './channel.node';
 export * from './curtain.control';
@@ -36,5 +37,7 @@ export const createChannelNode = (
       return new DryContact(state, nodeNo, device);
     case 'TemperatureSensor':
       return new TemperatureSensor(state, nodeNo, device);
+    case 'OccupancySensor':
+      return new OccupancySensor(state, nodeNo, device);
   }
 };

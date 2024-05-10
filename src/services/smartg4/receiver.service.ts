@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 import { BaseStructure } from './message';
 import { UdpListener } from './udp.listener.service';
 import { SYSTEM_IP, SystemFilterAction } from '@constants';
-import { responseOpCodeMap } from '@utils';
+import { opCodeHex, responseOpCodeMap } from '@utils';
 
 export class SmartG4Reciever {
   listener: UdpListener;
@@ -30,10 +30,12 @@ export class SmartG4Reciever {
 
     console.log('LOAD', this.filterTable);
 
+    const ignoredPackets: { [key: string]: boolean } = {};
+
     this.listener = new UdpListener(
       Number(process.env['SMART_G4_PORT'] || 6000),
       async (msg: Buffer) => {
-        console.log('\nReceived message:', msg);
+        //console.log('\nReceived message:', msg);
 
         const data = Buffer.from([...this.dataQueue, ...msg]);
 
@@ -48,14 +50,21 @@ export class SmartG4Reciever {
             );
           } else if (baseParse.OriginIp === SYSTEM_IP) {
             // ignore from own IP
-          } else if (!responseOpCodeMap[`0x${baseParse.OpCode.toString(16)}`]) {
+          } else if (!responseOpCodeMap[opCodeHex(baseParse.OpCode)]) {
             // ignore un mapped op codes
-            console.log(
-              'Packet is dropped by OpCode mapping',
-              baseParse.OriginIp,
-              baseParse.OriginAddress,
-              baseParse.OpCode.toString(16),
-            );
+            const ignoreKey = Array.from(msg)
+              .map((b) => b.toString(16))
+              .join('');
+            if (!ignoredPackets[ignoreKey]) {
+              console.log(
+                'Packet is dropped by OpCode mapping',
+                baseParse.OriginIp,
+                baseParse.OriginAddress,
+                opCodeHex(baseParse.OpCode),
+              );
+              console.log(msg);
+              ignoredPackets[ignoreKey] = true;
+            }
           } else {
             const moment = DateTime.utc().toMillis();
 

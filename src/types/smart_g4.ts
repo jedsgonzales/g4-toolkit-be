@@ -48,6 +48,10 @@ export interface MotionSensorState {
   MotionDetected: boolean;
 }
 
+export interface OccupancySensorState {
+  OccupancyDetected: boolean;
+}
+
 export interface TempSensorState {
   CurrentTemp: number;
   TempUnit: TEMP_UNIT;
