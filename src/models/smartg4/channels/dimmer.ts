@@ -1,7 +1,7 @@
 import { NetworkDevice } from '@internal/prisma/smartg4';
 import { OverrideOpts, VarSwitchState } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
-import { smartG4UdpSender } from '../sender.service';
+import { smartG4UdpSender } from '../../../services/smartg4/sender.service';
 import { ChannelNode } from './channel.node';
 
 interface VarSwitchControl extends VarSwitchState {

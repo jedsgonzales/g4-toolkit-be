@@ -9,6 +9,27 @@ export class DeviceService {
     private readonly prisma: SmartG4DbClient,
   ) {}
 
+  async all() {
+    return await this.prisma.networkDevice.findMany({
+      include: {
+        NetworkBroadcaster: true,
+        Channels: true,
+      },
+    });
+  }
+
+  async byId(id: number) {
+    return await this.prisma.networkDevice.findUnique({
+      where: {
+        Id: id,
+      },
+      include: {
+        NetworkBroadcaster: true,
+        Channels: true,
+      },
+    });
+  }
+
   async find({
     ip,
     subnetId,
@@ -103,5 +124,41 @@ export class DeviceService {
     }
 
     return existing;
+  }
+
+  async toggleDevices(ids: number[], status: boolean[], userId: string) {
+    const now = DateTime.utc().toJSDate();
+
+    let targets = ids.filter((id, idx) => status[idx]);
+    if (targets.length) {
+      await this.prisma.networkDevice.updateMany({
+        where: {
+          Id: {
+            in: targets,
+          },
+        },
+        data: {
+          Enabled: true,
+          EnabledOn: now,
+          EnabledBy: userId,
+        },
+      });
+    }
+
+    targets = ids.filter((id, idx) => !status[idx]);
+    if (targets.length) {
+      await this.prisma.networkDevice.updateMany({
+        where: {
+          Id: {
+            in: ids.filter((id, idx) => status[idx]),
+          },
+        },
+        data: {
+          Enabled: true,
+          EnabledOn: now,
+          EnabledBy: userId,
+        },
+      });
+    }
   }
 }

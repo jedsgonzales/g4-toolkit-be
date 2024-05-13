@@ -113,12 +113,15 @@ model NetworkDevice {
   DeviceType    Int
 
   BroadcasterId String              
-  NetworkBroadcaster      NetworkBroadcaster      @relation(fields: [BroadcasterId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+  NetworkBroadcaster      NetworkBroadcaster      @relation(fields: [BroadcasterId], references: [Id], onDelete: Cascade, onUpdate: NoAction)
 
   AreaId        Int?             
   Area          Area?               @relation(fields: [AreaId], references: [Id], onDelete: Cascade)
 
   CustomDesc    String
+
+  AddedOn       DateTime          @default(now())
+  LastMsgOn     DateTime?
 
   Channels      DeviceChannelNode[]
 }
@@ -177,6 +180,9 @@ model SystemFilter {
   DeviceId        String?
   SubnetId        String?
   FilterAction    String //SystemFilterAction
+  DetectedOn      DateTime            @default(now())
+  UpdatedOn       DateTime?
+  UpdatedBy       String?
 }
 
 model IncomingMsg {

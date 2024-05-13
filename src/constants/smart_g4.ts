@@ -1,6 +1,6 @@
 import { DimmerType, HVACType, RelayType } from '@services';
 import { createSourceIp } from '@utils';
-import { TemperatureSensorType } from 'src/services/smartg4/channels/temperature_sensor';
+import { TemperatureSensorType } from 'src/models/smartg4/channels/temperature_sensor';
 
 export const SMARTCLOUD = Buffer.from('SMARTCLOUD');
 export const LEAD_CODES = Buffer.from([0xaa, 0xaa]);

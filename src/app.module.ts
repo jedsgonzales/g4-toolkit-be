@@ -4,22 +4,25 @@ import { AppService } from './app.service';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver } from '@nestjs/apollo';
 import type { ApolloDriverConfig } from '@nestjs/apollo';
-/* import { BigIntResolver } from 'graphql-scalars'; */
+import { BigIntResolver } from 'graphql-scalars';
 import { UserService, prismaService } from './services/db';
 import { AuthService } from './services';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants/jwt';
-import { AuthResolver, HelloResolver } from './graphql/resolvers';
+import { AuthResolver, FiltersQueries } from './graphql/resolvers';
+import { User } from './graphql/models';
+import { DeviceQueries } from './graphql/resolvers/queries/device.queries';
 
 const isProd =
-  process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test';
+  process.env['NODE_ENV'] !== 'development' &&
+  process.env['NODE_ENV'] !== 'test';
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: !isProd,
       autoSchemaFile: true,
-      /* resolvers: { BigInt: BigIntResolver }, */
+      resolvers: { BigInt: BigIntResolver },
       context: ({ request }) => ({
         req: request,
       }),
@@ -37,8 +40,16 @@ const isProd =
     AuthService,
     { provide: 'DB_CONNECTION', useValue: prismaService },
 
-    HelloResolver,
     AuthResolver,
+    FiltersQueries,
+    DeviceQueries,
   ],
 })
 export class AppModule {}
+
+interface RequestWithUser extends Request {
+  user?: User;
+}
+export interface GraphQLContext {
+  req: RequestWithUser;
+}

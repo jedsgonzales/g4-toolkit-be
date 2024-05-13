@@ -1,17 +1,18 @@
-import { OverrideOpts, SwitchState } from '@localtypes';
+import { HVACState, HVACStateControl, OverrideOpts } from '@localtypes';
 import { senderOpCodeMap } from '@utils';
-import { smartG4UdpSender } from '../sender.service';
+import { smartG4UdpSender } from '../../../services/smartg4/sender.service';
 import { ChannelNode } from './channel.node';
 import { NetworkDevice } from '@internal/prisma/smartg4';
 
-export const RelayType = 'Relay';
-export class Relay extends ChannelNode<SwitchState, SwitchState> {
-  constructor(state: SwitchState, channel: number, device?: NetworkDevice) {
-    super(state);
+export const HVACType = 'HVAC';
+export class HVAC extends ChannelNode<HVACState, HVACStateControl> {
+  constructor(state: HVACState, acNo: number = 1, device?: NetworkDevice) {
+    super({ ...state });
 
+    this.State = state;
+    this.NodeNo = acNo;
     this.NetworkDevice = device;
-    this.NodeNo = channel;
-    this.NodeType = RelayType;
+    this.NodeType = HVACType;
   }
 
   /**
@@ -19,7 +20,7 @@ export class Relay extends ChannelNode<SwitchState, SwitchState> {
    * @param param0
    */
   public queryStatus({ UseAddress, UseType }: OverrideOpts) {
-    const msg = senderOpCodeMap['0x0033']({
+    const msg = senderOpCodeMap['0xe0ec']({
       Target: {
         address: UseAddress || {
           SubnetId: this.NetworkDevice.SubnetId,
@@ -31,12 +32,19 @@ export class Relay extends ChannelNode<SwitchState, SwitchState> {
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
-      console.error('Error sending query status message', err, bytes);
+      console.error('Error sending HVAC query status message', err, bytes);
     });
+
+    return msg;
   }
 
-  public setState({ UseAddress, UseType, Status }: OverrideOpts & SwitchState) {
-    const msg = senderOpCodeMap['0x0031']({
+  public setState({
+    UseAddress,
+    UseType,
+    Status,
+    ...rest
+  }: OverrideOpts & HVACStateControl) {
+    const msg = senderOpCodeMap['0x193a']({
       Target: {
         address: UseAddress || {
           SubnetId: this.NetworkDevice.SubnetId,
@@ -46,7 +54,8 @@ export class Relay extends ChannelNode<SwitchState, SwitchState> {
       },
       ChannelNo: this.NodeNo,
       Status,
-      RunningTime: 0,
+      AcNo: this.NodeNo,
+      ...rest,
     });
 
     smartG4UdpSender.Send(msg, (err, bytes) => {
