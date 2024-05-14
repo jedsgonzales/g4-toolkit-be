@@ -5,11 +5,11 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver } from '@nestjs/apollo';
 import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { BigIntResolver } from 'graphql-scalars';
-import { UserService, prismaService } from './services/db';
+import { AreaService, ChannelNodeService, DeviceService, NetworkBroacasterService, SystemFilterService, UserService, prismaService } from './services/db';
 import { AuthService } from './services';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants/jwt';
-import { AuthResolver, FiltersQueries } from './graphql/resolvers';
+import { AuthResolver, FilterMutations, FiltersQueries, ReceiverAnnouncements } from './graphql/resolvers';
 import { User } from './graphql/models';
 import { DeviceQueries } from './graphql/resolvers/queries/device.queries';
 import { PubSub } from 'graphql-subscriptions';
@@ -49,13 +49,22 @@ export const pubSub = new PubSub();
   controllers: [AppController],
   providers: [
     AppService,
+
+    AreaService,
+    ChannelNodeService,
+    DeviceService,
+    NetworkBroacasterService,
+    SystemFilterService,
     UserService,
-    AuthService,
     { provide: 'DB_CONNECTION', useValue: prismaService },
 
     AuthResolver,
-    FiltersQueries,
     DeviceQueries,
+    FiltersQueries,
+    ReceiverAnnouncements,
+
+    AuthService,
+    FilterMutations,
   ],
 })
 export class AppModule {}

@@ -1,3 +1,5 @@
+import { LocalhostGuard } from '@guards';
+import { UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
 import {
   AreaService,
@@ -42,6 +44,9 @@ export class ReceiverAnnouncements {
     pubSub.asyncIterator('AreaOccupancyStateChanged');
   }
 
+  // =================================================
+
+  @UseGuards(LocalhostGuard)
   @Query(() => NetworkBroadcasterBase)
   async AnnounceNewBroadcaster(@Args('ip') ip: string) {
     const broadcaster = await this.networkBroacasterService.byId(ip);
@@ -54,6 +59,7 @@ export class ReceiverAnnouncements {
     return broadcaster;
   }
 
+  @UseGuards(LocalhostGuard)
   @Query(() => NetworkBroadcasterBase)
   async AnnounceNewDevice(
     @Args('ip') ip: string,
@@ -74,6 +80,7 @@ export class ReceiverAnnouncements {
     return device;
   }
 
+  @UseGuards(LocalhostGuard)
   @Query(() => ChannelNode)
   async AnnounceNodeStateChanged(@Args('id') id: number) {
     const node = await this.channelNodeService.byId(id);
@@ -86,6 +93,7 @@ export class ReceiverAnnouncements {
     return node;
   }
 
+  @UseGuards(LocalhostGuard)
   @Query(() => Area)
   async AnnounceAreaOccupancy(@Args('id') id: number) {
     const area = await this.areaService.byId(id);
