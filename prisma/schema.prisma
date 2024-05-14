@@ -66,6 +66,8 @@ model Area {
   Id            Int                 @id @default(autoincrement()) @map("_id")
   Name          String
   Details       String?
+
+  IsOccupied    Boolean?            @default(false)
   
   ParentAreaId  Int?             
   ParentArea    Area?               @relation(name: "ParentSubArea", fields: [ParentAreaId], references: [Id], onDelete: NoAction, onUpdate: NoAction)

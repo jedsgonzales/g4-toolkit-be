@@ -12,10 +12,20 @@ import { jwtConstants } from './constants/jwt';
 import { AuthResolver, FiltersQueries } from './graphql/resolvers';
 import { User } from './graphql/models';
 import { DeviceQueries } from './graphql/resolvers/queries/device.queries';
+import { PubSub } from 'graphql-subscriptions';
+
+interface RequestWithUser extends Request {
+  user?: User;
+}
+export interface GraphQLContext {
+  req: RequestWithUser;
+}
 
 const isProd =
   process.env['NODE_ENV'] !== 'development' &&
   process.env['NODE_ENV'] !== 'test';
+
+export const pubSub = new PubSub();
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -26,6 +36,9 @@ const isProd =
       context: ({ request }) => ({
         req: request,
       }),
+      subscriptions: {
+        'graphql-ws': true,
+      },
     }),
     JwtModule.register({
       global: true,
@@ -46,10 +59,3 @@ const isProd =
   ],
 })
 export class AppModule {}
-
-interface RequestWithUser extends Request {
-  user?: User;
-}
-export interface GraphQLContext {
-  req: RequestWithUser;
-}

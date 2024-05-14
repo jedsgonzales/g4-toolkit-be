@@ -129,7 +129,7 @@ export class DeviceService {
   async toggleDevices(ids: number[], status: boolean[], userId: string) {
     const now = DateTime.utc().toJSDate();
 
-    let targets = ids.filter((id, idx) => status[idx]);
+    let targets = ids.filter((_id, idx) => status[idx]);
     if (targets.length) {
       await this.prisma.networkDevice.updateMany({
         where: {
@@ -145,16 +145,16 @@ export class DeviceService {
       });
     }
 
-    targets = ids.filter((id, idx) => !status[idx]);
+    targets = ids.filter((_id, idx) => !status[idx]);
     if (targets.length) {
       await this.prisma.networkDevice.updateMany({
         where: {
           Id: {
-            in: ids.filter((id, idx) => status[idx]),
+            in: targets,
           },
         },
         data: {
-          Enabled: true,
+          Enabled: false,
           EnabledOn: now,
           EnabledBy: userId,
         },

@@ -8,6 +8,17 @@ export class ChannelNodeService {
     private readonly prisma: SmartG4DbClient,
   ) {}
 
+  async byId(id: number) {
+    return await this.prisma.deviceChannelNode.findUnique({
+      where: {
+        Id: id,
+      },
+      include: {
+        Status: true,
+      },
+    });
+  }
+
   async find({
     deviceId,
     nodeNo,
