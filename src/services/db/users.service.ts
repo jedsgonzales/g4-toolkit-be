@@ -3,14 +3,43 @@ import { DateTime } from 'luxon';
 import type { User } from '@internal/prisma/smartg4';
 import type { SmartG4DbClient } from './prisma.service';
 import { createString } from 'src/utils/string';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject('DB_CONNECTION')
     private readonly prisma: SmartG4DbClient,
-  ) {}
+  ) {
+    // check if there a default admin, if none then create it
+    this.prisma.user
+      .findFirst({
+        where: { Username: 'admin' },
+      })
+      .then((admin) => {
+        if (!admin) {
+          const hasher = crypto.createHash('sha256');
+          hasher.update('admin');
+
+          this.createUser({
+            username: 'admin',
+            password: hasher.digest('hex'),
+            firstName: 'Admin',
+            lastName: 'Admin',
+            email: 'g4admin@building.net',
+            isAdmin: true,
+          });
+        }
+      });
+  }
+
+  async list(): Promise<User[]> {
+    return this.prisma.user.findMany({
+      orderBy: {
+        Id: 'asc',
+      },
+    });
+  }
 
   async findByUsername(username: string): Promise<User | null> {
     return this.prisma.user.findFirst({
@@ -30,12 +59,14 @@ export class UserService {
     firstName,
     lastName,
     email,
+    isAdmin = false,
   }: {
     username: string;
     password: string;
     firstName?: string;
     lastName?: string;
     email?: string;
+    isAdmin?: boolean;
   }) {
     const hasher = crypto.createHash('sha256');
     hasher.update(password);
@@ -44,6 +75,7 @@ export class UserService {
       data: {
         Username: username.toLowerCase(),
         Password: hasher.digest('hex'),
+        Role: isAdmin ? 'admin' : 'user',
         FirstName: firstName,
         LastName: lastName,
         Email: email,
@@ -71,6 +103,7 @@ export class UserService {
       select: {
         Id: true,
         Username: true,
+        Role: true,
         Email: true,
         FirstName: true,
         LastName: true,

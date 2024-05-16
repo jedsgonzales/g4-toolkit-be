@@ -39,6 +39,7 @@ datasource db {
 model User {
   Id                Int               @id @default(autoincrement()) @map("_id")
   Username          String
+  Role              String
   Email             String?
   FirstName         String?
   LastName          String?
