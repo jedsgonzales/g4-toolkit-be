@@ -1,18 +1,16 @@
-import { LocalhostGuard } from '@guards';
-import { UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
-import {
-  AreaService,
-  ChannelNode,
-  ChannelNodeService,
-  DeviceService,
-} from '@services';
 import { pubSub } from 'src/app.module';
 import {
   Area,
+  ChannelNode,
   NetworkBroadcasterBase,
   NetworkDevice,
 } from 'src/graphql/models';
+import { LocalhostGuard } from 'src/guards/localhost.guard';
+import { AreaService } from 'src/services/db/area.service';
+import { ChannelNodeService } from 'src/services/db/channel.node.service';
+import { DeviceService } from 'src/services/db/device.service';
 import { NetworkBroacasterService } from 'src/services/db/network.broadcaster.service';
 
 @Resolver()
@@ -21,6 +19,7 @@ export class ReceiverAnnouncements {
     private readonly deviceService: DeviceService,
     private readonly networkBroacasterService: NetworkBroacasterService,
     private readonly channelNodeService: ChannelNodeService,
+    @Inject(forwardRef(() => AreaService))
     private readonly areaService: AreaService,
   ) {}
 

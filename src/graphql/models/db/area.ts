@@ -1,6 +1,6 @@
-import { NetworkDeviceBase } from '@graphql';
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { DateTimeResolver } from 'graphql-scalars';
+import { NetworkDeviceBase } from './network.device';
 
 @ObjectType()
 export class AreaBase {

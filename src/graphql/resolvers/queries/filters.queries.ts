@@ -1,8 +1,8 @@
-import { NetworkDevice, SystemFilter } from '@graphql';
-import { AuthAdminGuard } from '@guards';
 import { Inject, UseGuards } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
-import { SmartG4DbClient } from '@services';
+import { SystemFilter, NetworkDevice } from 'src/graphql/models';
+import { AuthAdminGuard } from 'src/guards/admin.guard';
+import type { SmartG4DbClient } from 'src/services/db/prisma.service';
 
 @Resolver()
 export class FiltersQueries {

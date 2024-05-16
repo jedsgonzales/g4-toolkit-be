@@ -1,11 +1,11 @@
 import { SystemFilter } from '@internal/prisma/smartg4';
 import { Inject } from '@nestjs/common';
-import type { SmartG4DbClient } from '@services';
 import { DateTime } from 'luxon';
 import { BaseStructure } from '../../models/smartg4/message';
 import { UdpListener } from './udp.listener.service';
 import { SYSTEM_IP, SystemFilterAction } from '@constants';
 import { opCodeHex, responseOpCodeMap } from '@utils';
+import { type SmartG4DbClient } from '../db/prisma.service';
 
 export class SmartG4Reciever {
   listener: UdpListener;

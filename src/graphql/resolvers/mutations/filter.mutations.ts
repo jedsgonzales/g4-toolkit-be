@@ -1,13 +1,15 @@
-import { AuthAdminGuard } from '@guards';
-import { UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-import { DeviceService, SystemFilterService } from '@services';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
+import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { GraphQLContext } from 'src/app.module';
 import { SystemFilter, SystemFilterInput } from 'src/graphql/models';
+import { AuthAdminGuard } from 'src/guards/admin.guard';
+import { DeviceService } from 'src/services/db/device.service';
+import { SystemFilterService } from 'src/services/db/system.filter.service';
 
 @Resolver()
 export class FilterMutations {
   constructor(
+    @Inject(forwardRef(() => SystemFilterService))
     private readonly systemFilterService: SystemFilterService,
     private readonly deviceService: DeviceService,
   ) {}
@@ -27,13 +29,13 @@ export class FilterMutations {
   @UseGuards(AuthAdminGuard)
   @Mutation(() => Boolean)
   async UpdateDeviceFilter(
-    @Args('devices') IdList: number[],
-    @Args('status') IdStates: boolean[],
+    @Args({ name: 'DeviceIds', type: () => [Int] }) IdList: number[],
+    @Args({ name: 'States', type: () => [Boolean] }) States: boolean[],
     @Context() ctx: GraphQLContext,
   ) {
     await this.deviceService.toggleDevices(
       IdList,
-      IdStates,
+      States,
       ctx.req.user.Username,
     );
 

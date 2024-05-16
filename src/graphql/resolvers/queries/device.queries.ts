@@ -1,14 +1,14 @@
-import { DeviceIdentityInput, NetworkDevice } from '@graphql';
-import { AuthAdminGuard } from '@guards';
-import { Inject, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { DeviceService, SmartG4DbClient } from '@services';
+import { NetworkDevice, DeviceIdentityInput } from 'src/graphql/models';
+import { AuthAdminGuard } from 'src/guards/admin.guard';
+import { DeviceService } from 'src/services/db/device.service';
 
 @Resolver()
 export class DeviceQueries {
   constructor(
-    @Inject('DB_CONNECTION')
-    private readonly prisma: SmartG4DbClient,
+    /* @Inject('DB_CONNECTION')
+    private readonly prisma: SmartG4DbClient, */
     private readonly deviceService: DeviceService,
   ) {}
 

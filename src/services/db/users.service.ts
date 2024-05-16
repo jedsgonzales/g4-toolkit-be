@@ -1,7 +1,7 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import type { User } from '@internal/prisma/smartg4';
-import type { SmartG4DbClient } from '.';
+import type { SmartG4DbClient } from './prisma.service';
 import { createString } from 'src/utils/string';
 import crypto from 'crypto';
 

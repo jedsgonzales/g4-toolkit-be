@@ -1,13 +1,3 @@
-import {
-  packCRC,
-  BaseStructure,
-  MalformedSmartG4MessageError,
-  Dimmer,
-  Relay,
-  CurtainControl,
-  HVAC,
-  ChannelNode,
-} from '@services';
 import { isIPv4 } from 'net';
 import { HVACStateControl, SenderOpts } from '@localtypes';
 import { DryContact } from 'src/models/smartg4/channels/dry_contact';
@@ -15,6 +5,18 @@ import { DRY_CONTACT_STATUS, DRY_CONTACT_TYPE, TEMP_UNIT } from '@constants';
 import { MotionSensor } from 'src/models/smartg4/channels/motion_sensor';
 import { TemperatureSensor } from 'src/models/smartg4/channels/temperature_sensor';
 import { OccupancySensor } from 'src/models/smartg4/channels/occupancy.sensor';
+import {
+  Dimmer,
+  Relay,
+  CurtainControl,
+  HVAC,
+  ChannelNode,
+} from 'src/models/smartg4/channels';
+import {
+  packCRC,
+  BaseStructure,
+  MalformedSmartG4MessageError,
+} from 'src/models/smartg4/message';
 
 export const createSourceIp = (ip: string) => {
   if (isIPv4(ip)) {

@@ -1,6 +1,6 @@
-import { ArgsType, Field, Int } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 
-@ArgsType()
+@InputType()
 export class DeviceIdentityInput {
   @Field({ nullable: true })
   Ip?: string;

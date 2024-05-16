@@ -4,7 +4,7 @@ import {
   ChannelStatus,
   NetworkDevice,
 } from '@internal/prisma/smartg4';
-import { prismaService } from 'src/services/db';
+import { prismaService } from 'src/services/db/prisma.service';
 import { DateTime } from 'luxon';
 import { isDeepStrictEqual } from 'util';
 /* import { pause } from 'src/utils/pause'; */

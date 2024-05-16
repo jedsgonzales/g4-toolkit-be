@@ -1,4 +1,4 @@
-import { ArgsType, Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { DateTimeResolver } from 'graphql-scalars';
 
 @ObjectType()
@@ -34,7 +34,7 @@ export class SystemFilter {
   UpdatedBy: string | null;
 }
 
-@ArgsType()
+@InputType()
 export class SystemFilterInput {
   @Field(() => ID, { nullable: true })
   Id: any;

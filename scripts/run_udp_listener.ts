@@ -1,6 +1,5 @@
-/* import { prismaService } from '../src/services/db'; */
-import { prismaService } from '@services';
-import { SmartG4Reciever } from '../src/services/smartg4';
+import { prismaService } from 'src/services/db/prisma.service';
+import { SmartG4Reciever } from 'src/services/smartg4/receiver.service';
 
 const listener = new SmartG4Reciever(prismaService);
 listener

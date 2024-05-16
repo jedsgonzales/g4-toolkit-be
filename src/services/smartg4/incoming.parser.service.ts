@@ -1,14 +1,11 @@
 import { SWITCH_GROUP, TEMP_SENSOR_GROUP } from '@constants';
 import { Inject } from '@nestjs/common';
-import {
-  BaseStructure,
-  createChannelNode,
-  type DeviceService,
-  type SmartG4DbClient,
-} from '@services';
 import { opCodeHex, responseOpCodeMap } from '@utils';
 import { pause } from 'src/utils/pause';
-
+import { type SmartG4DbClient } from '../db/prisma.service';
+import { DeviceService } from '../db/device.service';
+import { BaseStructure } from 'src/models/smartg4/message';
+import { createChannelNode } from 'src/models/smartg4/channels';
 export class IncomingParser {
   shutdown = false;
   constructor(

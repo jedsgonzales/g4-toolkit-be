@@ -1,8 +1,8 @@
 import { SystemFilterAction } from '@constants';
-import { SystemFilterInput } from '@graphql';
 import { Inject, Injectable } from '@nestjs/common';
-import { SmartG4DbClient } from '@services';
 import { DateTime } from 'luxon';
+import { SystemFilterInput } from 'src/graphql/models';
+import type { SmartG4DbClient } from './prisma.service';
 
 @Injectable()
 export class SystemFilterService {

@@ -1,5 +1,5 @@
 import { DRY_CONTACT_STATUS, DRY_CONTACT_TYPE, TEMP_UNIT } from '@constants';
-import { DeviceAddress } from '@services';
+import { DeviceAddress } from 'src/models/smartg4/message';
 
 export interface DeviceIdentity {
   address: DeviceAddress;

@@ -2,9 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '@services';
 import type { Request } from 'express';
 import { jwtConstants } from 'src/constants/jwt';
+import { UserService } from 'src/services/db/users.service';
 
 @Injectable()
 export class AuthAdminGuard implements CanActivate {

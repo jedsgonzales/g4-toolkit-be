@@ -3,8 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { DateTime } from 'luxon';
 import { UserService } from './db/users.service';
 import { jwtConstants } from 'src/constants/jwt';
-import type { AuthResult } from '@graphql';
 import crypto from 'crypto';
+import { AuthResult } from 'src/graphql/models';
 
 @Injectable()
 export class AuthService {

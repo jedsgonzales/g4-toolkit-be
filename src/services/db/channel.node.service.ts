@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { SmartG4DbClient } from '@services';
+import type { SmartG4DbClient } from './prisma.service';
 
 @Injectable()
 export class ChannelNodeService {
