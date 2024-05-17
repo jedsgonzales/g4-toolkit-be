@@ -36,6 +36,7 @@ $ bun install
 
 ```bash
 $ bunx prisma generate
+$ bunx prisma db push
 
 # development
 $ bun run start
