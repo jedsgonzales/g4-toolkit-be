@@ -1,6 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { NetworkDevice, DeviceIdentityInput } from 'src/graphql/models';
+import { NetworkDevice } from 'src/graphql/models/db/network.device';
+import { DeviceIdentityInput } from 'src/graphql/models/transient/device.identity.input';
 import { AuthAdminGuard } from 'src/guards/admin.guard';
 import { DeviceService } from 'src/services/db/device.service';
 

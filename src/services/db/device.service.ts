@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import type { SmartG4DbClient } from './prisma.service';
+import { queryGqlAPI, REPORT_NEW_DEVICE } from 'src/utils/pubsub.gql.api';
 
 @Injectable()
 export class DeviceService {
@@ -121,6 +122,12 @@ export class DeviceService {
           },
         },
       });
+
+      if (process.env['PUBSUB_API_URL']) {
+        await queryGqlAPI(process.env['PUBSUB_API_URL'], REPORT_NEW_DEVICE, {
+          id: existing.Id,
+        });
+      }
     }
 
     return existing;

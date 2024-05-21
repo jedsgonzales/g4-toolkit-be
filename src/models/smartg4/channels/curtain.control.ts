@@ -1,4 +1,4 @@
-import { VarSwitchState } from '@localtypes';
+import { VarSwitchState } from 'src/types/smart_g4';
 import { Dimmer } from './dimmer';
 import { NetworkDevice } from '@internal/prisma/smartg4';
 

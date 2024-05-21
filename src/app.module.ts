@@ -8,7 +8,6 @@ import { PubSub } from 'graphql-subscriptions';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { jwtConstants } from './constants/jwt';
-import { User } from './graphql/models';
 import { DeviceQueries } from './graphql/resolvers/queries/device.queries';
 import { AuthResolver } from './graphql/resolvers/mutations/auth';
 import { FilterMutations } from './graphql/resolvers/mutations/filter.mutations';
@@ -22,6 +21,7 @@ import { NetworkBroacasterService } from './services/db/network.broadcaster.serv
 import { SystemFilterService } from './services/db/system.filter.service';
 import { UserService } from './services/db/users.service';
 import { prismaService } from './services/db/prisma.service';
+import { User } from './graphql/models/db/user.model';
 
 interface RequestWithUser extends Request {
   user?: User;

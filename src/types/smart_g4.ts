@@ -1,6 +1,26 @@
-import { DRY_CONTACT_STATUS, DRY_CONTACT_TYPE, TEMP_UNIT } from '@constants';
-import { DeviceAddress } from 'src/models/smartg4/message';
+import { DeviceAddress } from 'src/models/smartg4/message/base_structure';
 
+export enum TEMP_UNIT {
+  CELSIUS = 1,
+  FAHRENHEIT = 0,
+}
+
+export enum DRY_CONTACT_TYPE {
+  NORMALLY_CLOSED = 0,
+  NORMALLY_OPEN = 1,
+}
+
+export enum DRY_CONTACT_STATUS {
+  CLOSED = 0,
+  OPEN = 1,
+}
+
+export enum SystemFilterAction {
+  ALLOW = 'allow',
+  BLOCK = 'block',
+  DROP = 'ignore',
+  PENDING = 'pending',
+}
 export interface DeviceIdentity {
   address: DeviceAddress;
   type: number;

@@ -1,4 +1,4 @@
-import { OverrideOpts, TempSensorState } from '@localtypes';
+import { TempSensorState, OverrideOpts } from 'src/types/smart_g4';
 import { ChannelNode } from './channel.node';
 import { NetworkDevice } from '@internal/prisma/smartg4';
 

@@ -42,6 +42,28 @@ export class ChannelNodeService {
     });
   }
 
+  async updateNode(data: {
+    Id: number;
+    NetworkDeviceId: number;
+    NodeNo: number;
+    NodeType: string;
+    NodeDesc?: string;
+    CustomDesc?: string;
+  }) {
+    return await this.prisma.deviceChannelNode.update({
+      where: {
+        Id: data.Id,
+      },
+      data: {
+        NetworkDevice: { connect: { Id: data.NetworkDeviceId } },
+        NodeNo: data.NodeNo,
+        NodeType: data.NodeType,
+        NodeDesc: data.NodeDesc,
+        CustomDesc: data.CustomDesc,
+      },
+    });
+  }
+
   async findOrCreate({
     deviceId,
     nodeNo,

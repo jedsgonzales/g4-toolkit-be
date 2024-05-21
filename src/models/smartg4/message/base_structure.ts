@@ -1,5 +1,5 @@
-import { LEAD_CODES } from '@constants';
-import { withLeadCodes, withProperLength } from '.';
+import { LEAD_CODES } from 'src/constants/smart_g4';
+import { withLeadCodes, withProperLength } from 'src/utils/smart_g4';
 import { RawStructure } from './raw_structure';
 
 export interface DeviceAddress {

@@ -1,11 +1,11 @@
-import { SMARTCLOUD } from '@constants';
+import { SMARTCLOUD } from 'src/constants/smart_g4';
 import {
-  DeviceAddress,
-  getDataAfterHeader,
-  withCorrectCRC,
-  withProperLength,
   withSmartG4Header,
-} from '.';
+  withProperLength,
+  withCorrectCRC,
+  getDataAfterHeader,
+} from 'src/utils/smart_g4';
+import { DeviceAddress } from './base_structure';
 
 export class RawStructure {
   OriginIp: string;

@@ -1,9 +1,13 @@
-import { SystemFilterAction } from '@constants';
 import { Inject, Injectable } from '@nestjs/common';
 import { DateTime } from 'luxon';
-import { SystemFilterInput } from 'src/graphql/models';
-import type { SmartG4DbClient } from './prisma.service';
-
+import { SystemFilterInput } from 'src/graphql/models/db/system.filter';
+import { SystemFilterAction } from 'src/types/smart_g4';
+import {
+  queryGqlAPI,
+  REPORT_NEW_SYSTEM_FILTER,
+  REPORT_NEW_BROADCASTER,
+} from 'src/utils/pubsub.gql.api';
+import { type SmartG4DbClient } from './prisma.service';
 @Injectable()
 export class SystemFilterService {
   constructor(
@@ -15,6 +19,14 @@ export class SystemFilterService {
     return await this.prisma.systemFilter.findMany({
       orderBy: {
         OrderNo: 'asc',
+      },
+    });
+  }
+
+  async byId(Id: string) {
+    return await this.prisma.systemFilter.findUnique({
+      where: {
+        Id,
       },
     });
   }
@@ -42,6 +54,17 @@ export class SystemFilterService {
           },
         });
 
+    // repoprt new pending rule to pubsub
+    if (!Id && process.env['PUBSUB_API_URL']) {
+      await queryGqlAPI(
+        process.env['PUBSUB_API_URL'],
+        REPORT_NEW_SYSTEM_FILTER,
+        {
+          id: filter.Id,
+        },
+      );
+    }
+
     if (!Id) {
       await this.reOrderFilters();
     }
@@ -53,7 +76,7 @@ export class SystemFilterService {
     });
 
     if (!broadcasterProfile) {
-      await this.prisma.networkBroadcaster.create({
+      const newBroadcaster = await this.prisma.networkBroadcaster.create({
         data: {
           Id: filter.Ip,
           Enabled: filter.FilterAction === SystemFilterAction.ALLOW,
@@ -62,6 +85,16 @@ export class SystemFilterService {
           DetectedOn: filter.DetectedOn,
         },
       });
+
+      if (process.env['PUBSUB_API_URL']) {
+        await queryGqlAPI(
+          process.env['PUBSUB_API_URL'],
+          REPORT_NEW_BROADCASTER,
+          {
+            ip: newBroadcaster.Id,
+          },
+        );
+      }
     } else {
       await this.prisma.networkBroadcaster.update({
         where: {

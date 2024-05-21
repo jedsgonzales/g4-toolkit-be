@@ -1,6 +1,7 @@
 import { Inject, UseGuards } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
-import { SystemFilter, NetworkDevice } from 'src/graphql/models';
+import { NetworkDevice } from 'src/graphql/models/db/network.device';
+import { SystemFilter } from 'src/graphql/models/db/system.filter';
 import { AuthAdminGuard } from 'src/guards/admin.guard';
 import type { SmartG4DbClient } from 'src/services/db/prisma.service';
 

@@ -1,6 +1,6 @@
 import { NetworkDevice } from '@internal/prisma/smartg4';
-import { OccupancySensorState, OverrideOpts } from '@localtypes';
 import { ChannelNode } from './channel.node';
+import { OccupancySensorState, OverrideOpts } from 'src/types/smart_g4';
 
 export const OccupiedSensorType = 'OccupancySensor';
 export class OccupancySensor extends ChannelNode<OccupancySensorState, null> {

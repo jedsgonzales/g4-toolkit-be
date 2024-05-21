@@ -1,7 +1,10 @@
 import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { GraphQLContext } from 'src/app.module';
-import { SystemFilter, SystemFilterInput } from 'src/graphql/models';
+import {
+  SystemFilter,
+  SystemFilterInput,
+} from 'src/graphql/models/db/system.filter';
 import { AuthAdminGuard } from 'src/guards/admin.guard';
 import { DeviceService } from 'src/services/db/device.service';
 import { SystemFilterService } from 'src/services/db/system.filter.service';

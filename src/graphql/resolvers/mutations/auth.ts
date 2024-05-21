@@ -1,5 +1,5 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { AuthResult } from 'src/graphql/models';
+import { AuthResult } from 'src/graphql/models/transient/auth.result';
 import { AuthService } from 'src/services/auth.service';
 
 @Resolver()
@@ -15,7 +15,7 @@ export class AuthResolver {
    *  3. Submit the username and the resulting md5 hex string value to the SignIn mutation
    * @param username unique value username
    * @param password obfucated password value
-   * @returns 
+   * @returns
    */
   @Mutation(() => AuthResult)
   SignIn(@Args('Username') username: string, @Args('Key') password: string) {

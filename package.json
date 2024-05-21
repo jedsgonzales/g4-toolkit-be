@@ -22,7 +22,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "receiver": "ts-node -r tsconfig-paths/register ./scripts/run_msg_receiver.ts",
-    "listener": "ts-node -r tsconfig-paths/register ./scripts/run_udp_listener.ts"
+    "listener": "ts-node -r tsconfig-paths/register ./scripts/run_udp_listener.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@apollo/server": "^4.10.2",
@@ -33,8 +34,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^5.12.1",
-    "@serialport/parser-byte-length": "^12.0.0",
-    "@serialport/parser-delimiter": "^12.0.0",
+    "axios": "^1.6.8",
     "cookie-parser": "^1.4.6",
     "csrf-csrf": "3.0.4",
     "graphql": "^16.8.1",
@@ -44,8 +44,7 @@
     "graphql-ws": "^5.16.0",
     "luxon": "^3.4.4",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1",
-    "serialport": "^12.0.0"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -69,7 +68,8 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.1.3"
+    "typescript": "5.2.0",
+    "madge": "^7.0.0"
   },
   "jest": {
     "moduleFileExtensions": [

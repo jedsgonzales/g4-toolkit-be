@@ -1,4 +1,3 @@
-import { OverrideOpts } from '@localtypes';
 import {
   DeviceChannelNode,
   ChannelStatus,
@@ -7,7 +6,12 @@ import {
 import { prismaService } from 'src/services/db/prisma.service';
 import { DateTime } from 'luxon';
 import { isDeepStrictEqual } from 'util';
-/* import { pause } from 'src/utils/pause'; */
+import { ChannelNodeService } from 'src/services/db/channel.node.service';
+import { OverrideOpts } from 'src/types/smart_g4';
+import {
+  queryGqlAPI,
+  REPORT_CHANNEL_NODE_UPDATE,
+} from 'src/utils/pubsub.gql.api';
 
 export const ChannelNodeType = 'ChannelNode';
 
@@ -23,8 +27,11 @@ export abstract class ChannelNode<T, C> {
   State: T;
   NewState: T = undefined;
 
-  constructor(props: T) {
+  service: ChannelNodeService;
+
+  constructor(props: T, channelNodeService?: ChannelNodeService) {
     this.State = props;
+    this.service = channelNodeService || new ChannelNodeService(prismaService);
   }
 
   abstract setState(newState: C & OverrideOpts);
@@ -62,30 +69,20 @@ export abstract class ChannelNode<T, C> {
 
     if (!this.Id) {
       this.Id = (
-        await prismaService.deviceChannelNode.create({
-          data: {
-            NetworkDevice: { connect: { Id: this.NetworkDevice.Id } },
-            NodeNo: this.NodeNo,
-            NodeType: this.NodeType,
-            NodeDesc: this.NodeDesc,
-            CustomDesc: this.CustomDesc,
-          },
+        await this.service.findOrCreate({
+          deviceId: this.NetworkDevice.Id,
+          nodeNo: this.NodeNo,
+          nodeType: this.NodeType,
         })
       ).Id;
 
       console.log('Created node', this.Id, this.NodeType);
     } else {
-      await prismaService.deviceChannelNode.update({
-        where: {
-          Id: this.Id,
-        },
-        data: {
-          NetworkDevice: { connect: { Id: this.NetworkDevice.Id } },
-          NodeNo: this.NodeNo,
-          NodeType: this.NodeType,
-          NodeDesc: this.NodeDesc,
-          CustomDesc: this.CustomDesc,
-        },
+      await this.service.updateNode({
+        Id: this.Id,
+        NetworkDeviceId: this.NetworkDevice.Id,
+        NodeNo: this.NodeNo,
+        NodeType: this.NodeType,
       });
 
       console.log('Updated node', this.Id, this.NodeType);
@@ -124,11 +121,9 @@ export abstract class ChannelNode<T, C> {
     }
 
     const stateKeys = Object.keys(SaveState);
-    // const upserts: any[] = [];
     for (const key of stateKeys) {
       const id = `${this.NetworkDevice.Id}/${this.NodeType}/${this.Id}/${key}`;
 
-      // upserts.push(
       await prismaService.channelStatus.upsert({
         where: {
           Id: id,
@@ -148,12 +143,7 @@ export abstract class ChannelNode<T, C> {
           StateType: typeof SaveState[key],
         },
       });
-      //);
-
-      // await pause(100);
     }
-
-    // await prismaService.$transaction(upserts);
 
     if (delKeys.length > 0) {
       await prismaService.channelStatus.deleteMany({
@@ -162,6 +152,16 @@ export abstract class ChannelNode<T, C> {
           StateName: { in: delKeys },
         },
       });
+    }
+
+    if (process.env['PUBSUB_API_URL']) {
+      await queryGqlAPI(
+        process.env['PUBSUB_API_URL'],
+        REPORT_CHANNEL_NODE_UPDATE,
+        {
+          id: this.Id,
+        },
+      );
     }
 
     // save state history if required

@@ -1,4 +1,8 @@
-import { LEAD_CODES, SMARTCLOUD, SMARTG4_SENDER_IP } from '@constants';
+import {
+  SMARTG4_SENDER_IP,
+  SMARTCLOUD,
+  LEAD_CODES,
+} from 'src/constants/smart_g4';
 import { UdpSender } from './udp.sender.service';
 
 export class SenderService {

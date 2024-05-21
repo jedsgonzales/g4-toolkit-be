@@ -1,6 +1,8 @@
-import { createSourceIp } from '@utils';
-import { HVACType, RelayType, DimmerType } from 'src/models/smartg4/channels';
+import { DimmerType } from 'src/models/smartg4/channels/dimmer';
+import { HVACType } from 'src/models/smartg4/channels/hvac';
+import { RelayType } from 'src/models/smartg4/channels/relay';
 import { TemperatureSensorType } from 'src/models/smartg4/channels/temperature_sensor';
+import { createSourceIp } from 'src/utils/smart_g4';
 
 export const SMARTCLOUD = Buffer.from('SMARTCLOUD');
 export const LEAD_CODES = Buffer.from([0xaa, 0xaa]);
@@ -43,28 +45,6 @@ export const CRC_TABLE = [
 export const ALLOW_SUBNETS = (process.env['SMART_G4_SUBNETS'] || '1')
   .split(',')
   .map((s) => parseInt(s, 10));
-
-export enum TEMP_UNIT {
-  CELSIUS = 1,
-  FAHRENHEIT = 0,
-}
-
-export enum DRY_CONTACT_TYPE {
-  NORMALLY_CLOSED = 0,
-  NORMALLY_OPEN = 1,
-}
-
-export enum DRY_CONTACT_STATUS {
-  CLOSED = 0,
-  OPEN = 1,
-}
-
-export enum SystemFilterAction {
-  ALLOW = 'allow',
-  BLOCK = 'block',
-  DROP = 'ignore',
-  PENDING = 'pending',
-}
 
 export const TEMP_SENSOR_GROUP = [TemperatureSensorType, HVACType];
 export const SWITCH_GROUP = [RelayType, DimmerType];

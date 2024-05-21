@@ -1,5 +1,5 @@
-import { MotionSensorState, OverrideOpts } from '@localtypes';
-import { senderOpCodeMap } from '@utils';
+import { MotionSensorState, OverrideOpts } from 'src/types/smart_g4';
+import { senderOpCodeMap } from 'src/utils/smart_g4';
 import { smartG4UdpSender } from '../../../services/smartg4/sender.service';
 import { ChannelNode } from './channel.node';
 import { NetworkDevice } from '@internal/prisma/smartg4';

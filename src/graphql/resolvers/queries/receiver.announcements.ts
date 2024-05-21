@@ -1,17 +1,17 @@
 import { forwardRef, Inject, UseGuards } from '@nestjs/common';
-import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { pubSub } from 'src/app.module';
-import {
-  Area,
-  ChannelNode,
-  NetworkBroadcasterBase,
-  NetworkDevice,
-} from 'src/graphql/models';
+import { Area } from 'src/graphql/models/db/area';
+import { ChannelNode } from 'src/graphql/models/db/channel.node';
+import { NetworkBroadcasterBase } from 'src/graphql/models/db/network.broadcaster';
+import { NetworkDevice } from 'src/graphql/models/db/network.device';
+import { SystemFilter } from 'src/graphql/models/db/system.filter';
 import { LocalhostGuard } from 'src/guards/localhost.guard';
 import { AreaService } from 'src/services/db/area.service';
 import { ChannelNodeService } from 'src/services/db/channel.node.service';
 import { DeviceService } from 'src/services/db/device.service';
 import { NetworkBroacasterService } from 'src/services/db/network.broadcaster.service';
+import { SystemFilterService } from 'src/services/db/system.filter.service';
 
 @Resolver()
 export class ReceiverAnnouncements {
@@ -19,6 +19,7 @@ export class ReceiverAnnouncements {
     private readonly deviceService: DeviceService,
     private readonly networkBroacasterService: NetworkBroacasterService,
     private readonly channelNodeService: ChannelNodeService,
+    private readonly systemFilterService: SystemFilterService,
     @Inject(forwardRef(() => AreaService))
     private readonly areaService: AreaService,
   ) {}
@@ -43,6 +44,11 @@ export class ReceiverAnnouncements {
     pubSub.asyncIterator('AreaOccupancyStateChanged');
   }
 
+  @Subscription(() => Area)
+  NewSystemFilterCreated() {
+    pubSub.asyncIterator('NewSystemFilterCreated');
+  }
+
   // =================================================
 
   @UseGuards(LocalhostGuard)
@@ -62,8 +68,8 @@ export class ReceiverAnnouncements {
   @Query(() => NetworkBroadcasterBase)
   async AnnounceNewDevice(
     @Args('ip') ip: string,
-    @Args('id') id: number,
-    @Args('subnet') subnet: number,
+    @Args({ name: 'id', type: () => Int }) id: number,
+    @Args({ name: 'subnet', type: () => Int }) subnet: number,
   ) {
     const device = await this.deviceService.find({
       ip,
@@ -81,7 +87,9 @@ export class ReceiverAnnouncements {
 
   @UseGuards(LocalhostGuard)
   @Query(() => ChannelNode)
-  async AnnounceNodeStateChanged(@Args('id') id: number) {
+  async AnnounceNodeStateChanged(
+    @Args({ name: 'id', type: () => Int }) id: number,
+  ) {
     const node = await this.channelNodeService.byId(id);
 
     if (node)
@@ -94,7 +102,9 @@ export class ReceiverAnnouncements {
 
   @UseGuards(LocalhostGuard)
   @Query(() => Area)
-  async AnnounceAreaOccupancy(@Args('id') id: number) {
+  async AnnounceAreaOccupancy(
+    @Args({ name: 'id', type: () => Int }) id: number,
+  ) {
     const area = await this.areaService.byId(id);
 
     if (area)
@@ -103,5 +113,18 @@ export class ReceiverAnnouncements {
       });
 
     return area;
+  }
+
+  @UseGuards(LocalhostGuard)
+  @Query(() => SystemFilter)
+  async AnnounceNewSystemFilter(@Args('id') id: string) {
+    const filter = await this.systemFilterService.byId(id);
+
+    if (filter)
+      pubSub.publish('NewSystemFilterCreated', {
+        NewSystemFilterCreated: filter,
+      });
+
+    return filter;
   }
 }
