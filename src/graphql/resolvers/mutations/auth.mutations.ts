@@ -3,7 +3,7 @@ import { AuthResult } from 'src/graphql/models/transient/auth.result';
 import { AuthService } from 'src/services/auth.service';
 
 @Resolver()
-export class AuthResolver {
+export class AuthMutations {
   constructor(private authService: AuthService) {}
 
   /**

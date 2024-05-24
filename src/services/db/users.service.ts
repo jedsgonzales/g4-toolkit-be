@@ -1,33 +1,69 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  forwardRef,
+} from '@nestjs/common';
 import { DateTime } from 'luxon';
 import type { User } from '@internal/prisma/smartg4';
 import type { SmartG4DbClient } from './prisma.service';
 import { createString } from 'src/utils/string';
 import * as crypto from 'crypto';
+import { UserRoleService } from './user.role.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject('DB_CONNECTION')
     private readonly prisma: SmartG4DbClient,
+
+    @Inject(forwardRef(() => UserRoleService))
+    private readonly roleService: UserRoleService,
   ) {
     // check if there a default admin, if none then create it
     this.prisma.user
       .findFirst({
         where: { Username: 'admin' },
+        include: {
+          Roles: true,
+        },
       })
       .then((admin) => {
         if (!admin) {
           const hasher = crypto.createHash('sha256');
           hasher.update('admin');
 
-          this.createUser({
+          return this.createUser({
             username: 'admin',
             password: hasher.digest('hex'),
             firstName: 'Admin',
             lastName: 'Admin',
             email: 'g4admin@building.net',
             isAdmin: true,
+          });
+        }
+
+        return admin;
+      })
+      .then((admin) => {
+        const hasAdminRole = admin.Roles.find((r) => r.RoleName === 'Admin');
+
+        if (!hasAdminRole) {
+          this.roleService.byName('Admin').then((adminRole) => {
+            if (adminRole) {
+              return this.prisma.user.update({
+                where: {
+                  Id: admin.Id,
+                },
+                data: {
+                  Roles: {
+                    connect: {
+                      Id: adminRole.Id,
+                    },
+                  },
+                },
+              });
+            }
           });
         }
       });
@@ -41,9 +77,21 @@ export class UserService {
     });
   }
 
-  async findByUsername(username: string): Promise<User | null> {
+  async findByUsername(username: string) {
     return this.prisma.user.findFirst({
       where: { Username: username.toLowerCase() },
+      /* select: {
+        Id: true,
+        Username: true,
+        Roles: true,
+        Email: true,
+        FirstName: true,
+        LastName: true,
+        CreatedOn: true,
+      }, */
+      include: {
+        Roles: true,
+      },
     });
   }
 
@@ -71,15 +119,22 @@ export class UserService {
     const hasher = crypto.createHash('sha256');
     hasher.update(password);
 
-    await this.prisma.user.create({
+    return await this.prisma.user.create({
       data: {
         Username: username.toLowerCase(),
         Password: hasher.digest('hex'),
-        Role: isAdmin ? 'admin' : 'user',
+        Roles: {
+          connect: {
+            RoleName: isAdmin ? 'Admin' : 'Staff',
+          },
+        },
         FirstName: firstName,
         LastName: lastName,
         Email: email,
         CreatedOn: DateTime.utc().toJSDate(),
+      },
+      include: {
+        Roles: true,
       },
     });
   }
@@ -103,7 +158,7 @@ export class UserService {
       select: {
         Id: true,
         Username: true,
-        Role: true,
+        Roles: true,
         Email: true,
         FirstName: true,
         LastName: true,
@@ -137,7 +192,10 @@ export class UserService {
   }
 
   async createLoginKey(username: string): Promise<string> {
-    const user = await this.findByUsername(username);
+    const user = await this.prisma.user.findFirst({
+      where: { Username: username.toLowerCase() },
+    });
+
     if (!user) {
       throw new UnauthorizedException();
     }

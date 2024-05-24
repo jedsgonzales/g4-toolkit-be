@@ -9,7 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { jwtConstants } from './constants/jwt';
 import { DeviceQueries } from './graphql/resolvers/queries/device.queries';
-import { AuthResolver } from './graphql/resolvers/mutations/auth';
+import { AuthMutations } from './graphql/resolvers/mutations/auth.mutations';
 import { FilterMutations } from './graphql/resolvers/mutations/filter.mutations';
 import { FiltersQueries } from './graphql/resolvers/queries/filters.queries';
 import { ReceiverAnnouncements } from './graphql/resolvers/queries/receiver.announcements';
@@ -22,6 +22,8 @@ import { SystemFilterService } from './services/db/system.filter.service';
 import { UserService } from './services/db/users.service';
 import { prismaService } from './services/db/prisma.service';
 import { User } from './graphql/models/db/user.model';
+import { UserRoleService } from './services/db/user.role.service';
+import { AuthQueries } from './graphql/resolvers/queries/auth.queries';
 
 interface RequestWithUser extends Request {
   user?: User;
@@ -67,8 +69,10 @@ export const pubSub = new PubSub();
     NetworkBroacasterService,
     SystemFilterService,
     UserService,
+    UserRoleService,
 
-    AuthResolver,
+    AuthMutations,
+    AuthQueries,
     DeviceQueries,
     FiltersQueries,
     ReceiverAnnouncements,

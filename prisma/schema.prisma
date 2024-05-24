@@ -39,7 +39,6 @@ datasource db {
 model User {
   Id                Int               @id @default(autoincrement()) @map("_id")
   Username          String
-  Role              String
   Email             String?
   FirstName         String?
   LastName          String?
@@ -51,7 +50,17 @@ model User {
   LoginKey          String?
   LoginKeyExpireOn  DateTime?
 
-  Sessions      UserSession[]
+  Roles            UserRole[]
+
+  Sessions          UserSession[]
+}
+
+model UserRole {
+  Id            Int                 @id @default(autoincrement()) @map("_id")
+  RoleName      String              @unique
+  Description   String?
+
+  Users         User[]              
 }
 
 model UserSession {

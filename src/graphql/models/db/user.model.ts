@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { DateResolver } from 'graphql-scalars';
+import { UserRole } from './user.role';
 
 @ObjectType()
 export class BasicUserInfo {
@@ -23,7 +24,13 @@ export class BasicUserInfo {
 }
 
 @ObjectType()
-export class User extends BasicUserInfo {
+export class UserWithRoles extends BasicUserInfo {
+  @Field(() => [UserRole], { nullable: true })
+  Roles?: UserRole[];
+}
+
+@ObjectType()
+export class User extends UserWithRoles {
   @Field({ nullable: true })
   LoginKey?: string | null;
 
