@@ -30,12 +30,9 @@ export class UserService {
       })
       .then((admin) => {
         if (!admin) {
-          const hasher = crypto.createHash('sha256');
-          hasher.update('admin');
-
           return this.createUser({
             username: 'admin',
-            password: hasher.digest('hex'),
+            password: 'admin',
             firstName: 'Admin',
             lastName: 'Admin',
             email: 'g4admin@building.net',
@@ -116,6 +113,9 @@ export class UserService {
     email?: string;
     isAdmin?: boolean;
   }) {
+    const adminRole = await this.roleService.byName('Admin');
+    const staffRole = await this.roleService.byName('Staff');
+
     const hasher = crypto.createHash('sha256');
     hasher.update(password);
 
@@ -125,7 +125,7 @@ export class UserService {
         Password: hasher.digest('hex'),
         Roles: {
           connect: {
-            RoleName: isAdmin ? 'Admin' : 'Staff',
+            Id: isAdmin ? adminRole.Id : staffRole.Id,
           },
         },
         FirstName: firstName,
