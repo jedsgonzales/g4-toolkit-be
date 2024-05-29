@@ -17,6 +17,7 @@ export class IncomingParser {
   ) {}
 
   async startMonitoring() {
+    console.log(' monitoring incoming messages...');
     while (!this.shutdown) {
       const top = await this.prismaService.incomingMsg.findFirst({
         take: 1,
@@ -26,6 +27,7 @@ export class IncomingParser {
       });
 
       if (!top) {
+        console.log('no messages to process...');
         await pause(1000);
         continue;
       }

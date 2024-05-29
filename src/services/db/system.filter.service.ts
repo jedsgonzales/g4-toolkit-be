@@ -8,6 +8,8 @@ import {
   REPORT_NEW_BROADCASTER,
 } from 'src/utils/pubsub.gql.api';
 import { type SmartG4DbClient } from './prisma.service';
+import { Prisma } from '@internal/prisma/smartg4';
+
 @Injectable()
 export class SystemFilterService {
   constructor(
@@ -17,6 +19,28 @@ export class SystemFilterService {
 
   async listFilters() {
     return await this.prisma.systemFilter.findMany({
+      orderBy: {
+        OrderNo: 'asc',
+      },
+    });
+  }
+
+  async listPendingFilters() {
+    return await this.prisma.systemFilter.findMany({
+      where: {
+        FilterAction: SystemFilterAction.PENDING,
+      },
+      orderBy: {
+        OrderNo: 'asc',
+      },
+    });
+  }
+
+  async listCurrentFilters() {
+    return await this.prisma.systemFilter.findMany({
+      where: {
+        FilterAction: { not: SystemFilterAction.PENDING },
+      },
       orderBy: {
         OrderNo: 'asc',
       },
@@ -53,6 +77,29 @@ export class SystemFilterService {
             UpdatedBy: UserId,
           },
         });
+
+    const scopeUpdate: Prisma.SystemFilterWhereInput = {};
+    if (data.Ip === '*') {
+      scopeUpdate.Ip = { not: null };
+    } else {
+      scopeUpdate.Ip = data.Ip;
+    }
+
+    if (data.SubnetId === '*') {
+      scopeUpdate.SubnetId = { not: null };
+    } else {
+      scopeUpdate.SubnetId = data.SubnetId;
+    }
+
+    if (data.DeviceId === '*') {
+      scopeUpdate.DeviceId = { not: null };
+    }
+
+    if (Object.keys(scopeUpdate).length) {
+      await this.prisma.systemFilter.deleteMany({
+        where: { ...scopeUpdate, Id: { not: filter.Id } },
+      });
+    }
 
     // repoprt new pending rule to pubsub
     if (!Id && process.env['PUBSUB_API_URL']) {

@@ -1,9 +1,4 @@
-import {
-  BaseStructure,
-  CurtainControl,
-  Dimmer,
-  Relay,
-} from '@services';
+import { BaseStructure, CurtainControl, Dimmer, Relay } from '@services';
 import { describe, expect, test } from 'bun:test';
 
 import {
@@ -80,12 +75,10 @@ describe('SmartG4 Message Parsing', () => {
 
       if (i + 1 === curtainChannel) {
         expect(result.channels[i] instanceof CurtainControl).toBe(true);
-        expect((result.channels[i] as CurtainControl).State.Status).toBe(
-          true,
+        expect((result.channels[i] as CurtainControl).State.Status).toBe(true);
+        expect((result.channels[i] as CurtainControl).State.Percentage).toEqual(
+          50,
         );
-        expect(
-          (result.channels[i] as CurtainControl).State.Percentage,
-        ).toEqual(50);
       } else {
         expect(result.channels[i] instanceof Relay).toBe(true);
         expect(result.channels[i].State.Status).toBe(
@@ -110,12 +103,10 @@ describe('SmartG4 Message Parsing', () => {
 
       if (i + 1 === curtainChannel) {
         expect(result.channels[i] instanceof CurtainControl).toBe(true);
-        expect((result.channels[i] as CurtainControl).State.Status).toBe(
-          false,
+        expect((result.channels[i] as CurtainControl).State.Status).toBe(false);
+        expect((result.channels[i] as CurtainControl).State.Percentage).toEqual(
+          50,
         );
-        expect(
-          (result.channels[i] as CurtainControl).State.Percentage,
-        ).toEqual(50);
       } else {
         expect(result.channels[i] instanceof Relay).toBe(true);
         expect(result.channels[i].State.Status).toBe(

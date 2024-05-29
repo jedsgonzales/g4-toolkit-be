@@ -1,8 +1,16 @@
+import { isIPv4 } from 'net';
 import { DimmerType } from 'src/models/smartg4/channels/dimmer';
 import { HVACType } from 'src/models/smartg4/channels/hvac';
 import { RelayType } from 'src/models/smartg4/channels/relay';
 import { TemperatureSensorType } from 'src/models/smartg4/channels/temperature_sensor';
-import { createSourceIp } from 'src/utils/smart_g4';
+
+const createSourceIp = (ip: string) => {
+  if (isIPv4(ip)) {
+    return ip.split('.').map((octet) => parseInt(octet, 10));
+  }
+
+  throw new Error(`IP is not a valid IPv4 address - ${ip}`);
+};
 
 export const SMARTCLOUD = Buffer.from('SMARTCLOUD');
 export const LEAD_CODES = Buffer.from([0xaa, 0xaa]);

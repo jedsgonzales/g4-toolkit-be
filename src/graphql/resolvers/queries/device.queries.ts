@@ -7,11 +7,7 @@ import { DeviceService } from 'src/services/db/device.service';
 
 @Resolver()
 export class DeviceQueries {
-  constructor(
-    /* @Inject('DB_CONNECTION')
-    private readonly prisma: SmartG4DbClient, */
-    private readonly deviceService: DeviceService,
-  ) {}
+  constructor(private readonly deviceService: DeviceService) {}
 
   @UseGuards(AuthAdminGuard)
   @Query(() => [NetworkDevice])

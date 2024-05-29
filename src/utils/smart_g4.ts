@@ -1,8 +1,5 @@
+import { NetworkDevice } from '@internal/prisma/smartg4';
 import { isIPv4 } from 'net';
-import { DryContact } from 'src/models/smartg4/channels/dry_contact';
-import { MotionSensor } from 'src/models/smartg4/channels/motion_sensor';
-import { TemperatureSensor } from 'src/models/smartg4/channels/temperature_sensor';
-import { OccupancySensor } from 'src/models/smartg4/channels/occupancy.sensor';
 import {
   DRY_CONTACT_STATUS,
   DRY_CONTACT_TYPE,
@@ -10,14 +7,19 @@ import {
   SenderOpts,
   TEMP_UNIT,
 } from 'src/types/smart_g4';
-import { NetworkDevice } from '@internal/prisma/smartg4';
-import { CurtainControl } from 'src/models/smartg4/channels/curtain.control';
+
+import { ChannelNode } from 'src/models/smartg4/channels/channel.node';
 import { Dimmer } from 'src/models/smartg4/channels/dimmer';
 import { Relay } from 'src/models/smartg4/channels/relay';
-import { ChannelNode } from 'src/models/smartg4/channels/channel.node';
+import { HVAC } from 'src/models/smartg4/channels/hvac';
+import { DryContact } from 'src/models/smartg4/channels/dry_contact';
+import { MotionSensor } from 'src/models/smartg4/channels/motion_sensor';
+import { TemperatureSensor } from 'src/models/smartg4/channels/temperature_sensor';
+import { OccupancySensor } from 'src/models/smartg4/channels/occupancy.sensor';
+import { CurtainControl } from 'src/models/smartg4/channels/curtain.control';
+
 import { CRC_TABLE } from 'src/constants/smart_g4';
 import { BaseStructure } from 'src/models/smartg4/message/base_structure';
-import { HVAC } from 'src/models/smartg4/channels/hvac';
 
 const smartcloud = Buffer.from('SMARTCLOUD');
 const standardHeader = Buffer.from([...smartcloud, 0xaa, 0xaa]);
@@ -749,6 +751,7 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
     return channelStatus;
   },
 };
+
 export const createChannelNode = (
   nodeType: string,
   state: any,
@@ -760,8 +763,6 @@ export const createChannelNode = (
       return new Dimmer(state, nodeNo, device);
     case 'Relay':
       return new Relay(state, nodeNo, device);
-    case 'CurtainControl':
-      return new CurtainControl(state, nodeNo, device);
     case 'HVAC':
       return new HVAC(state, nodeNo, device);
     case 'MotionSensor':
@@ -772,5 +773,7 @@ export const createChannelNode = (
       return new TemperatureSensor(state, nodeNo, device);
     case 'OccupancySensor':
       return new OccupancySensor(state, nodeNo, device);
+    case 'CurtainControl':
+      return new CurtainControl(state, nodeNo, device);
   }
 };

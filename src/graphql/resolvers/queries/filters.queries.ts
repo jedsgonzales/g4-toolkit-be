@@ -1,46 +1,51 @@
-import { Inject, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
 import { NetworkDevice } from 'src/graphql/models/db/network.device';
 import { SystemFilter } from 'src/graphql/models/db/system.filter';
 import { AuthAdminGuard } from 'src/guards/admin.guard';
-import type { SmartG4DbClient } from 'src/services/db/prisma.service';
+import { DeviceService } from 'src/services/db/device.service';
+import { SystemFilterService } from 'src/services/db/system.filter.service';
 
 @Resolver()
 export class FiltersQueries {
   constructor(
-    @Inject('DB_CONNECTION')
-    private readonly prisma: SmartG4DbClient,
+    private readonly systemFilterService: SystemFilterService,
+    private readonly deviceService: DeviceService,
   ) {}
 
   @UseGuards(AuthAdminGuard)
   @Query(() => [SystemFilter])
   async AllSourceFilters() {
-    const filters = await this.prisma.systemFilter.findMany({
-      orderBy: {
-        OrderNo: 'asc',
-      },
-    });
+    return await this.systemFilterService.listFilters();
+  }
 
-    return filters;
+  @UseGuards(AuthAdminGuard)
+  @Query(() => [SystemFilter])
+  async PendingSourceFilters() {
+    return await this.systemFilterService.listPendingFilters();
+  }
+
+  @UseGuards(AuthAdminGuard)
+  @Query(() => [SystemFilter])
+  async CurrentSourceFilters() {
+    return await this.systemFilterService.listCurrentFilters();
   }
 
   @UseGuards(AuthAdminGuard)
   @Query(() => [NetworkDevice])
   async AllDeviceFilters() {
-    const filters = await this.prisma.networkDevice.findMany({
-      include: {
-        NetworkBroadcaster: true,
-        Area: true,
-      },
-      orderBy: {
-        NetworkBroadcaster: {
-          LastMsgOn: 'desc',
-        },
-        SubnetId: 'asc',
-        DeviceId: 'asc',
-      },
-    });
+    return await this.deviceService.all();
+  }
 
-    return filters;
+  @UseGuards(AuthAdminGuard)
+  @Query(() => [NetworkDevice])
+  async DisabledDevices() {
+    return await this.deviceService.disabledDevices();
+  }
+
+  @UseGuards(AuthAdminGuard)
+  @Query(() => [NetworkDevice])
+  async ActiveDevices() {
+    return await this.deviceService.enabledDevices();
   }
 }

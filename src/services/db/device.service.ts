@@ -19,6 +19,30 @@ export class DeviceService {
     });
   }
 
+  async disabledDevices() {
+    return await this.prisma.networkDevice.findMany({
+      where: {
+        DisabledOn: { not: null },
+      },
+      include: {
+        NetworkBroadcaster: true,
+        Channels: true,
+      },
+    });
+  }
+
+  async enabledDevices() {
+    return await this.prisma.networkDevice.findMany({
+      where: {
+        DisabledOn: null,
+      },
+      include: {
+        NetworkBroadcaster: true,
+        Channels: true,
+      },
+    });
+  }
+
   async byId(id: number) {
     return await this.prisma.networkDevice.findUnique({
       where: {
