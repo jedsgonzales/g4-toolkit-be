@@ -41,6 +41,7 @@ export class AuthService {
         sub: user.Id,
         username: user.Username,
         ts: DateTime.utc().toMillis(),
+        expiresIn: '7d',
       },
       { secret: jwtConstants.secret },
     );

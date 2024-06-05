@@ -8,7 +8,7 @@ import { UserService } from 'src/services/db/users.service';
 import { isProd } from 'src/utils/env';
 
 @Injectable()
-export class AuthAdminGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,

@@ -5,7 +5,7 @@ import {
   SystemFilter,
   SystemFilterInput,
 } from 'src/graphql/models/db/system.filter';
-import { AuthAdminGuard } from 'src/guards/admin.guard';
+import { AuthGuard } from 'src/guards/admin.guard';
 import { DeviceService } from 'src/services/db/device.service';
 import { SystemFilterService } from 'src/services/db/system.filter.service';
 
@@ -17,7 +17,7 @@ export class FilterMutations {
     private readonly deviceService: DeviceService,
   ) {}
 
-  @UseGuards(AuthAdminGuard)
+  @UseGuards(AuthGuard)
   @Mutation(() => SystemFilter)
   async UpdateFilter(
     @Args('filter') input: SystemFilterInput,
@@ -29,7 +29,13 @@ export class FilterMutations {
     );
   }
 
-  @UseGuards(AuthAdminGuard)
+  @UseGuards(AuthGuard)
+  @Mutation(() => SystemFilter)
+  async DeleteFilter(@Args('filterId') id: string) {
+    return await this.systemFilterService.deleteFilter(id);
+  }
+
+  @UseGuards(AuthGuard)
   @Mutation(() => Boolean)
   async UpdateDeviceFilter(
     @Args({ name: 'DeviceIds', type: () => [Int] }) IdList: number[],
