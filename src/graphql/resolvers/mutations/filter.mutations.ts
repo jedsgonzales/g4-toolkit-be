@@ -30,9 +30,9 @@ export class FilterMutations {
   }
 
   @UseGuards(AuthGuard)
-  @Mutation(() => SystemFilter)
-  async DeleteFilter(@Args('filterId') id: string) {
-    return await this.systemFilterService.deleteFilter(id);
+  @Mutation(() => Int)
+  async DeleteFilter(@Args({name: 'filterIds', type: () => [String]}) id: string[]) {
+    return (await this.systemFilterService.deleteFilter(id)).count;
   }
 
   @UseGuards(AuthGuard)

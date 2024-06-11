@@ -164,10 +164,10 @@ export class SystemFilterService {
     return filter;
   }
 
-  async deleteFilter(id: string) {
-    const filter = await this.prisma.systemFilter.delete({
+  async deleteFilter(id: string[]) {
+    const filter = await this.prisma.systemFilter.deleteMany({
       where: {
-        Id: id,
+        Id: { in: id },
       },
     });
 

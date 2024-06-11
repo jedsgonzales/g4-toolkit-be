@@ -6,8 +6,8 @@ export class SystemFilter {
   @Field(() => ID!)
   Id: any;
 
-  @Field()
-  RuleName: string;
+  @Field({ nullable: true })
+  RuleName: string | null;
 
   @Field(() => Int)
   OrderNo: number;
