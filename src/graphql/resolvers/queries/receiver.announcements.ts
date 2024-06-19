@@ -1,6 +1,5 @@
 import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
-import { pubSub } from 'src/app.module';
 import { Area } from 'src/graphql/models/db/area';
 import { ChannelNode } from 'src/graphql/models/db/channel.node';
 import { NetworkBroadcasterBase } from 'src/graphql/models/db/network.broadcaster';
@@ -12,6 +11,7 @@ import { ChannelNodeService } from 'src/services/db/channel.node.service';
 import { DeviceService } from 'src/services/db/device.service';
 import { NetworkBroacasterService } from 'src/services/db/network.broadcaster.service';
 import { SystemFilterService } from 'src/services/db/system.filter.service';
+import { pubSub } from 'src/services/pubsub';
 
 @Resolver()
 export class ReceiverAnnouncements {

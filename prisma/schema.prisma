@@ -74,13 +74,14 @@ model UserSession {
 
 model Area {
   Id            Int                 @id @default(autoincrement()) @map("_id")
-  Name          String
+  Name          String              @unique
+  Type          String              // Property, Level, Unit
   Details       String?
 
   IsOccupied    Boolean?            @default(false)
   
   ParentAreaId  Int?             
-  ParentArea    Area?               @relation(name: "ParentSubArea", fields: [ParentAreaId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+  ParentArea    Area?               @relation(name: "ParentSubArea", fields: [ParentAreaId], references: [Id], onDelete: Cascade, onUpdate: NoAction)
 
   SubAreas      Area[]              @relation(name: "ParentSubArea")
 
@@ -125,14 +126,14 @@ model NetworkDevice {
   DeviceType    Int
 
   BroadcasterId String              
-  NetworkBroadcaster      NetworkBroadcaster      @relation(fields: [BroadcasterId], references: [Id], onDelete: Cascade, onUpdate: NoAction)
+  NetworkBroadcaster      NetworkBroadcaster      @relation(fields: [BroadcasterId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
 
   AreaId        Int?             
-  Area          Area?               @relation(fields: [AreaId], references: [Id], onDelete: Cascade)
+  Area          Area?               @relation(fields: [AreaId], references: [Id], onDelete: NoAction)
 
   CustomDesc    String
 
-  AddedOn       DateTime          @default(now())
+  AddedOn       DateTime            @default(now())
   LastMsgOn     DateTime?
 
   Channels      DeviceChannelNode[]

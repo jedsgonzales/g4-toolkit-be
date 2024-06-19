@@ -66,11 +66,14 @@ export class UserService {
       });
   }
 
-  async list(): Promise<User[]> {
+  async list(withRoles?: boolean): Promise<User[]> {
     return this.prisma.user.findMany({
       orderBy: {
         Id: 'asc',
       },
+      include: {
+        Roles: withRoles,
+      }
     });
   }
 

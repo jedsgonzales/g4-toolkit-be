@@ -1,6 +1,7 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { DateTimeResolver } from 'graphql-scalars';
 import { NetworkDeviceBase } from './network.device';
+import { AreaType } from 'src/types/smart_g4';
 
 @ObjectType()
 export class AreaBase {
@@ -9,6 +10,9 @@ export class AreaBase {
 
   @Field()
   Name: string;
+
+  @Field(() => String)
+  Type: AreaType;
 
   @Field({ nullable: true })
   Details: string | null;
@@ -39,4 +43,46 @@ export class Area extends AreaBase {
 
   @Field(() => [NetworkDeviceBase])
   Devices: NetworkDeviceBase[];
+}
+
+@InputType()
+export class PropertyAreaInput {
+  @Field(() => ID, { nullable: true })
+  Id: any;
+
+  @Field()
+  Name: string;
+
+  @Field({ nullable: true })
+  Details: string | null;
+}
+
+@InputType()
+export class LevelAreaInput {
+  @Field(() => ID, { nullable: true })
+  Id: any;
+
+  @Field()
+  Name: string;
+
+  @Field({ nullable: true })
+  Details: string | null;
+
+  @Field(() => Int)
+  ParentAreaId: number;
+}
+
+@InputType()
+export class UnitAreaInput {
+  @Field(() => ID, { nullable: true })
+  Id: any;
+
+  @Field()
+  Name: string;
+
+  @Field({ nullable: true })
+  Details: string | null;
+
+  @Field(() => Int)
+  ParentAreaId: number;
 }

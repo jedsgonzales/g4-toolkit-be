@@ -21,6 +21,14 @@ export enum SystemFilterAction {
   DROP = 'ignore',
   PENDING = 'pending',
 }
+
+export enum AreaType {
+  PROPERTY = 'Property',
+  LEVEL = 'Level',
+  FLOOR = 'Level',
+  UNIT = 'Unit',
+}
+
 export interface DeviceIdentity {
   address: DeviceAddress;
   type: number;

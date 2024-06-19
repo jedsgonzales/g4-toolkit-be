@@ -3,15 +3,13 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
-/* import { BigIntResolver } from 'graphql-scalars'; */
-import { PubSub } from 'graphql-subscriptions';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { jwtConstants } from './constants/jwt';
 import { DeviceQueries } from './graphql/resolvers/queries/device.queries';
 import { AuthMutations } from './graphql/resolvers/mutations/auth.mutations';
 import { FilterMutations } from './graphql/resolvers/mutations/filter.mutations';
-import { FiltersQueries } from './graphql/resolvers/queries/filters.queries';
+import { FilterQueries } from './graphql/resolvers/queries/filter.queries';
 import { ReceiverAnnouncements } from './graphql/resolvers/queries/receiver.announcements';
 import { AuthService } from './services/auth.service';
 import { AreaService } from './services/db/area.service';
@@ -21,29 +19,22 @@ import { NetworkBroacasterService } from './services/db/network.broadcaster.serv
 import { SystemFilterService } from './services/db/system.filter.service';
 import { UserService } from './services/db/users.service';
 import { prismaService } from './services/db/prisma.service';
-import { User } from './graphql/models/db/user.model';
 import { UserRoleService } from './services/db/user.role.service';
 import { AuthQueries } from './graphql/resolvers/queries/auth.queries';
-
-interface RequestWithUser extends Request {
-  user?: User;
-}
-export interface GraphQLContext {
-  req: RequestWithUser;
-}
+import { UserQueries } from './graphql/resolvers/queries/user.queries';
+import { LocationQueries } from './graphql/resolvers/queries/location.queries';
+import { LocationMutations } from './graphql/resolvers/mutations/location.mutations';
 
 const isProd =
   process.env['NODE_ENV'] !== 'development' &&
   process.env['NODE_ENV'] !== 'test';
 
-export const pubSub = new PubSub();
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: !isProd,
       autoSchemaFile: true,
-      /* resolvers: { BigInt: BigIntResolver }, */
       context: ({ request }) => ({
         req: request,
       }),
@@ -74,10 +65,13 @@ export const pubSub = new PubSub();
     AuthMutations,
     AuthQueries,
     DeviceQueries,
-    FiltersQueries,
+    FilterQueries,
+    LocationQueries,
     ReceiverAnnouncements,
+    UserQueries,
 
     FilterMutations,
+    LocationMutations,
   ],
 })
 export class AppModule {}

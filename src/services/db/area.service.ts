@@ -1,6 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import type { SmartG4DbClient } from './prisma.service';
+import { AreaType } from 'src/types/smart_g4';
+
+interface AreaOpts {
+  inclSubArea?: boolean;
+  inclDevices?: boolean;
+}
 
 @Injectable()
 export class AreaService {
@@ -9,38 +15,106 @@ export class AreaService {
     private readonly prisma: SmartG4DbClient,
   ) {}
 
-  async byId(id: number) {
-    return this.prisma.area.findUnique({
+  async byId(id: number, opts?: AreaOpts) {
+    return await this.prisma.area.findUnique({
       where: {
         Id: id,
+      },
+      include: {
+        SubAreas: opts?.inclSubArea,
+        Devices: opts?.inclDevices,
+        ParentArea: true,
       },
     });
   }
 
-  async createArea(
+  async byName(name: string, opts?: AreaOpts) {
+    return await this.prisma.area.findUnique({
+      where: {
+        Name: name,
+      },
+      include: {
+        SubAreas: opts?.inclSubArea,
+        Devices: opts?.inclDevices,
+        ParentArea: true,
+      },
+    });
+  }
+
+  async deleteArea(ids: number[]) {
+    return await this.prisma.area.deleteMany({
+      where: {
+        Id: { in: ids },
+      },
+    });
+  }
+
+  async listArea(type: AreaType, parentId?: number, opts?: AreaOpts) {
+    return await this.prisma.area.findMany({
+      where: {
+        Type: type,
+        ParentAreaId: parentId,
+      },
+      include: {
+        SubAreas: opts?.inclSubArea,
+        Devices: opts?.inclDevices,
+        ParentArea: true,
+      },
+    });
+  }
+
+  async saveArea(
     {
-      areaName,
-      parentAreaId,
+      Id,
+      Name,
+      Details,
+      Type,
+      ParentAreaId,
       attachDeviceId,
     }: {
-      areaName: string;
-      parentAreaId?: number;
-      attachDeviceId: number;
+      Id?: number | null;
+      Name: string;
+      Details?: string | null;
+      Type: AreaType;
+      ParentAreaId?: number | null;
+      attachDeviceId?: number | null;
     },
     userId: string,
   ) {
-    const area = await this.prisma.area.create({
-      data: {
-        Name: areaName,
-        ParentArea: parentAreaId
-          ? { connect: { Id: parentAreaId } }
-          : undefined,
-        CreatedOn: DateTime.utc().toJSDate(),
-        CreatedBy: userId,
-        UpdatedOn: DateTime.utc().toJSDate(),
-        UpdatedBy: userId,
-      },
-    });
+    const now = DateTime.utc().toJSDate();
+
+    const area = await (!!Id
+      ? this.prisma.area.update({
+          where: {
+            Id,
+          },
+          data: {
+            Name,
+            Details,
+            Type,
+            ParentArea: !!ParentAreaId
+              ? { connect: { Id: ParentAreaId } }
+              : undefined,
+            CreatedOn: now,
+            CreatedBy: userId,
+            UpdatedOn: now,
+            UpdatedBy: userId,
+          },
+        })
+      : this.prisma.area.create({
+          data: {
+            Name,
+            Details,
+            Type,
+            ParentArea: !!ParentAreaId
+              ? { connect: { Id: ParentAreaId } }
+              : undefined,
+            CreatedOn: now,
+            CreatedBy: userId,
+            UpdatedOn: now,
+            UpdatedBy: userId,
+          },
+        }));
 
     if (attachDeviceId) {
       await this.prisma.networkDevice.update({

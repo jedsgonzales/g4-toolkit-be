@@ -7,7 +7,7 @@ import { DeviceService } from 'src/services/db/device.service';
 import { SystemFilterService } from 'src/services/db/system.filter.service';
 
 @Resolver()
-export class FiltersQueries {
+export class FilterQueries {
   constructor(
     private readonly systemFilterService: SystemFilterService,
     private readonly deviceService: DeviceService,

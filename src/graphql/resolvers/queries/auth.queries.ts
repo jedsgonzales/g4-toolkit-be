@@ -1,8 +1,8 @@
 import { UseGuards } from '@nestjs/common';
 import { Context, Query, Resolver } from '@nestjs/graphql';
-import { GraphQLContext } from 'src/app.module';
 import { UserWithRoles } from 'src/graphql/models/db/user.model';
 import { AuthGuard } from 'src/guards/admin.guard';
+import { GraphQLContext } from 'src/types/graphql.ctx';
 
 @Resolver()
 export class AuthQueries {
