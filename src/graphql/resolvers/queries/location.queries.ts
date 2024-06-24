@@ -28,4 +28,10 @@ export class LocationQueries {
   async LevelUnits(@Args({ name: 'LevelId', type: () => Int }) levelId: number) {
     return await this.locationService.listArea(AreaType.UNIT, levelId, { inclDevices: true });
   }
+
+  @UseGuards(AuthGuard)
+  @Query(() => [Area])
+  async AreaByKeyword(@Args('filter') filter: string) {
+    return await this.locationService.byKeyword(filter);
+  }
 }

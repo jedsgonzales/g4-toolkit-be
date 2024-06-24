@@ -15,6 +15,18 @@ export class AreaService {
     private readonly prisma: SmartG4DbClient,
   ) {}
 
+  async byKeyword(keyword: string) {
+    return await this.prisma.area.findMany({
+      where: {
+        Name: { contains: keyword.toLowerCase() },
+      },
+      include: {
+        SubAreas: true,
+        ParentArea: true,
+      },
+    });
+  }
+
   async byId(id: number, opts?: AreaOpts) {
     return await this.prisma.area.findUnique({
       where: {

@@ -17,8 +17,8 @@ export class AreaBase {
   @Field({ nullable: true })
   Details: string | null;
 
-  @Field(() => Int, { nullable: true })
-  ParentAreaId: number | null;
+  @Field(() => ID, { nullable: true })
+  ParentAreaId: any;
 
   @Field(() => DateTimeResolver)
   CreatedOn: Date;
