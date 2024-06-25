@@ -1,8 +1,4 @@
 import { isIPv4 } from 'net';
-import { DimmerType } from 'src/models/smartg4/channels/dimmer';
-import { HVACType } from 'src/models/smartg4/channels/hvac';
-import { RelayType } from 'src/models/smartg4/channels/relay';
-import { TemperatureSensorType } from 'src/models/smartg4/channels/temperature_sensor';
 
 const createSourceIp = (ip: string) => {
   if (isIPv4(ip)) {
@@ -53,6 +49,16 @@ export const CRC_TABLE = [
 export const ALLOW_SUBNETS = (process.env['SMART_G4_SUBNETS'] || '1')
   .split(',')
   .map((s) => parseInt(s, 10));
+
+export const ChannelNodeType = 'ChannelNode';
+export const DimmerType = 'Dimmer';
+export const CurtainControlType = 'CurtainControl';
+export const DryContactType = 'DryContact';
+export const HVACType = 'HVAC';
+export const MotionSensorType = 'MotionSensor';
+export const OccupiedSensorType = 'OccupancySensor';
+export const RelayType = 'Relay';
+export const TemperatureSensorType = 'TemperatureSensor';
 
 export const TEMP_SENSOR_GROUP = [TemperatureSensorType, HVACType];
 export const SWITCH_GROUP = [RelayType, DimmerType];

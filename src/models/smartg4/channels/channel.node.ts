@@ -12,8 +12,7 @@ import {
   queryGqlAPI,
   REPORT_CHANNEL_NODE_UPDATE,
 } from 'src/utils/pubsub.gql.api';
-
-export const ChannelNodeType = 'ChannelNode';
+import { ChannelNodeType } from 'src/constants/smart_g4';
 
 export abstract class ChannelNode<T, C> {
   NetworkDevice: NetworkDevice;
@@ -153,6 +152,14 @@ export abstract class ChannelNode<T, C> {
         },
       });
     }
+
+    // clean up old status related from old type
+    await prismaService.channelStatus.deleteMany({
+      where: {
+        Id: { not: { startsWith: `${this.NetworkDevice.Id}/${this.NodeType}` } },
+        ChannelId: this.Id,
+      }
+    })
 
     if (process.env['PUBSUB_API_URL']) {
       await queryGqlAPI(

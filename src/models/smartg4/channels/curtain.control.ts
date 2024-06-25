@@ -3,12 +3,12 @@ import { NetworkDevice } from '@internal/prisma/smartg4';
 import { smartG4UdpSender } from 'src/services/smartg4/sender.service';
 import { senderOpCodeMap } from 'src/utils/smart_g4';
 import { ChannelNode } from './channel.node';
+import { CurtainControlType } from 'src/constants/smart_g4';
 
 interface VarSwitchControl extends VarSwitchState {
   RunningTime?: number;
 }
 
-export const CurtainControlType = 'CurtainControl';
 export class CurtainControl extends ChannelNode<
   VarSwitchState,
   VarSwitchControl

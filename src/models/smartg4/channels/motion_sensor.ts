@@ -3,8 +3,8 @@ import { senderOpCodeMap } from 'src/utils/smart_g4';
 import { smartG4UdpSender } from '../../../services/smartg4/sender.service';
 import { ChannelNode } from './channel.node';
 import { NetworkDevice } from '@internal/prisma/smartg4';
+import { MotionSensorType } from 'src/constants/smart_g4';
 
-export const MotionSensorType = 'MotionSensor';
 export class MotionSensor extends ChannelNode<MotionSensorState, null> {
   constructor(
     state: MotionSensorState,

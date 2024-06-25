@@ -3,8 +3,8 @@ import { senderOpCodeMap } from 'src/utils/smart_g4';
 import { smartG4UdpSender } from '../../../services/smartg4/sender.service';
 import { ChannelNode } from './channel.node';
 import { NetworkDevice } from '@internal/prisma/smartg4';
+import { DryContactType } from 'src/constants/smart_g4';
 
-export const DryContactType = 'DryContact';
 export class DryContact extends ChannelNode<DryContactState, null> {
   constructor(state: DryContactState, contact: number, device?: NetworkDevice) {
     super(state);

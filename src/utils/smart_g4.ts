@@ -378,7 +378,10 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
 
     const channelStatus: (Dimmer | Relay | CurtainControl)[] = [];
 
-    const [channel, percentage] = packet.Content;
+    const [channel, _isSuccess, percentage] = packet.Content;
+
+    console.log('channel', channel);
+    console.log('channel state', percentage);
 
     if (packet.Content.length > 3) {
       const qtyOfChannels = packet.Content.subarray(3).readUInt8(0);
@@ -397,20 +400,24 @@ export const responseOpCodeMap: ResponseOpCodeMap = {
           const channelPos = i * 8 + j + 1;
           const status = byte & (1 << j) ? 100 : 0;
 
-          if (channelPos === channel && percentage > 1) {
-            // most probably a dimmer channel that uses 0 to 100 value
-            // relay is only using 0 and 1 to state power status
-            channelStatus.push(
-              new Dimmer(
-                {
-                  Status: !!status,
-                  Percentage: percentage,
-                },
-                channelPos,
-              ),
-            );
-          } else {
-            channelStatus.push(new Relay({ Status: !!status }, channelPos));
+          if(channelPos === channel){
+            if (percentage > 1) {
+              // most probably a dimmer channel that uses 0 to 100 value
+              // relay is only using 0 and 1 to state power status
+              channelStatus.push(
+                new Dimmer(
+                  {
+                    Status: !!status,
+                    Percentage: percentage,
+                  },
+                  channelPos,
+                ),
+              );
+            } else {
+              channelStatus.push(new Relay({ Status: !!status }, channelPos));
+            }
+
+            break;
           }
         }
       }

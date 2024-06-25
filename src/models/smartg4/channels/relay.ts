@@ -3,8 +3,8 @@ import { senderOpCodeMap } from 'src/utils/smart_g4';
 import { smartG4UdpSender } from '../../../services/smartg4/sender.service';
 import { ChannelNode } from './channel.node';
 import { NetworkDevice } from '@internal/prisma/smartg4';
+import { RelayType } from 'src/constants/smart_g4';
 
-export const RelayType = 'Relay';
 export class Relay extends ChannelNode<SwitchState, SwitchState> {
   constructor(state: SwitchState, channel: number, device?: NetworkDevice) {
     super(state);

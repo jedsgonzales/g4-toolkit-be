@@ -3,12 +3,12 @@ import { smartG4UdpSender } from '../../../services/smartg4/sender.service';
 import { ChannelNode } from './channel.node';
 import { senderOpCodeMap } from 'src/utils/smart_g4';
 import { VarSwitchState, OverrideOpts } from 'src/types/smart_g4';
+import { DimmerType } from 'src/constants/smart_g4';
 
 interface VarSwitchControl extends VarSwitchState {
   RunningTime?: number;
 }
 
-export const DimmerType = 'Dimmer';
 export class Dimmer extends ChannelNode<VarSwitchState, VarSwitchControl> {
   constructor(props: VarSwitchState, channel: number, device?: NetworkDevice) {
     super(props);

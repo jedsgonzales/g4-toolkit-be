@@ -27,7 +27,7 @@ export class IncomingParser {
       });
 
       if (!top) {
-        console.log('no messages to process...');
+        // console.log('no messages to process...');
         await pause(1000);
         continue;
       }
@@ -53,12 +53,13 @@ export class IncomingParser {
       });
 
       for (const incomingMsg of bulk) {
-        console.log('incoming message', incomingMsg.Id);
+        console.log('incoming message', incomingMsg.Id, incomingMsg.Raw);
 
         const packet = new BaseStructure(incomingMsg.Raw);
         const opCode = opCodeHex(packet.OpCode);
 
         console.log('incoming opcode', opCode);
+        console.log('cmd structure', packet);
 
         if (responseOpCodeMap[opCode]) {
           console.log('\tcalling opcode handler', opCode);
@@ -80,6 +81,13 @@ export class IncomingParser {
 
             let nodeUpdated = false;
             if (!node) {
+              console.log('cant find node match, maybe an upgrade for type', channelNode.NodeNo, channelNode.NodeType);
+              console.debug('switch types', SWITCH_GROUP);
+              console.debug('sensor types', TEMP_SENSOR_GROUP);
+
+              console.debug('from sensors', TEMP_SENSOR_GROUP.includes(channelNode.NodeType));
+              console.debug('from switches', SWITCH_GROUP.includes(channelNode.NodeType));
+
               // detect variance, update as necessary
               if (TEMP_SENSOR_GROUP.includes(channelNode.NodeType)) {
                 node = device.Channels.find(
@@ -103,6 +111,12 @@ export class IncomingParser {
                     SWITCH_GROUP.includes(channel.NodeType),
                 );
 
+                console.debug('found related type', node );
+                
+                console.debug('old node', node, SWITCH_GROUP.indexOf(node.NodeType));
+                console.debug('old node', node, SWITCH_GROUP.indexOf(node.NodeType));
+                console.debug('new node', channelNode, SWITCH_GROUP.indexOf(channelNode.NodeType));
+
                 if (
                   node &&
                   SWITCH_GROUP.indexOf(node.NodeType) <
@@ -115,7 +129,7 @@ export class IncomingParser {
             }
 
             console.log('node parsed', node);
-            console.log('node type', node?.NodeType || channelNode.NodeType);
+            // console.log('node type', node?.NodeType || channelNode.NodeType);
             const nodeInstance = createChannelNode(
               node?.NodeType || channelNode.NodeType,
               node?.Status.map((status) => ({
@@ -131,11 +145,11 @@ export class IncomingParser {
             }
 
             if (!node || nodeUpdated) {
-              console.log('node syncing...');
+              // console.log('node syncing...');
               await nodeInstance.syncNode();
             }
 
-            console.log('node syncing state...');
+            // console.log('node syncing state...');
             await nodeInstance.syncState();
           }
         } else {

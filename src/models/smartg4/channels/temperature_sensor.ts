@@ -1,8 +1,7 @@
 import { TempSensorState, OverrideOpts } from 'src/types/smart_g4';
 import { ChannelNode } from './channel.node';
 import { NetworkDevice } from '@internal/prisma/smartg4';
-
-export const TemperatureSensorType = 'TemperatureSensor';
+import { TemperatureSensorType } from 'src/constants/smart_g4';
 
 export class TemperatureSensor extends ChannelNode<TempSensorState, null> {
   constructor(state: TempSensorState, sensor?: number, device?: NetworkDevice) {
