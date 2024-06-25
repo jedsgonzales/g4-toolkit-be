@@ -81,13 +81,6 @@ export class IncomingParser {
 
             let nodeUpdated = false;
             if (!node) {
-              console.log('cant find node match, maybe an upgrade for type', channelNode.NodeNo, channelNode.NodeType);
-              console.debug('switch types', SWITCH_GROUP);
-              console.debug('sensor types', TEMP_SENSOR_GROUP);
-
-              console.debug('from sensors', TEMP_SENSOR_GROUP.includes(channelNode.NodeType));
-              console.debug('from switches', SWITCH_GROUP.includes(channelNode.NodeType));
-
               // detect variance, update as necessary
               if (TEMP_SENSOR_GROUP.includes(channelNode.NodeType)) {
                 node = device.Channels.find(
@@ -110,12 +103,6 @@ export class IncomingParser {
                     channel.NodeNo === channelNode.NodeNo &&
                     SWITCH_GROUP.includes(channel.NodeType),
                 );
-
-                console.debug('found related type', node );
-                
-                console.debug('old node', node, SWITCH_GROUP.indexOf(node.NodeType));
-                console.debug('old node', node, SWITCH_GROUP.indexOf(node.NodeType));
-                console.debug('new node', channelNode, SWITCH_GROUP.indexOf(channelNode.NodeType));
 
                 if (
                   node &&
