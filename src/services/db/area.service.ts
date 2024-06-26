@@ -15,6 +15,49 @@ export class AreaService {
     private readonly prisma: SmartG4DbClient,
   ) {}
 
+  async unitDeviceCount(unitId: number){
+    return await this.prisma.networkDevice.count({
+      where: {
+        AreaId: unitId,
+      }
+    })
+  }
+
+  async levelDeviceCount(levelId: number){
+    const units = await this.prisma.area.findMany({
+      where: {
+        ParentAreaId: levelId,
+      },
+      select: {
+        Id: true,
+      }
+    });
+
+    return await this.prisma.networkDevice.count({
+      where: {
+        AreaId: { in: units.map((u) => u.Id) },
+      }
+    })
+  }
+
+  async propertyDeviceCount(propertyId: number){
+    const levels = await this.prisma.area.findMany({
+      where: {
+        ParentAreaId: propertyId,
+      },
+      select: {
+        Id: true,
+      }
+    });
+
+    let count = 0;
+    for(const level of levels){
+      count += await this.levelDeviceCount(level.Id);
+    }
+
+    return count;
+  }
+
   async byKeyword(keyword: string) {
     return await this.prisma.area.findMany({
       where: {
@@ -23,6 +66,7 @@ export class AreaService {
       include: {
         SubAreas: true,
         ParentArea: true,
+        Devices: true,
       },
     });
   }

@@ -12,7 +12,7 @@ export class AreaBase {
   Name: string;
 
   @Field(() => String)
-  Type: AreaType;
+  Type: AreaType | string;
 
   @Field({ nullable: true })
   Details: string | null;
@@ -43,6 +43,9 @@ export class Area extends AreaBase {
 
   @Field(() => [NetworkDeviceBase])
   Devices: NetworkDeviceBase[];
+
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  DeviceCount: number;
 }
 
 @InputType()

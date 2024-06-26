@@ -74,7 +74,7 @@ model UserSession {
 
 model Area {
   Id            Int                 @id @default(autoincrement()) @map("_id")
-  Name          String              @unique
+  Name          String              @unique 
   Type          String              // Property, Level, Unit
   Details       String?
 
