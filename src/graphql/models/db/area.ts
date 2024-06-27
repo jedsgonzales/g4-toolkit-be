@@ -6,7 +6,7 @@ import { AreaType } from 'src/types/smart_g4';
 @ObjectType()
 export class AreaBase {
   @Field(() => ID!)
-  Id: any;
+  Id: number;
 
   @Field()
   Name: string;
@@ -18,7 +18,7 @@ export class AreaBase {
   Details: string | null;
 
   @Field(() => ID, { nullable: true })
-  ParentAreaId: any;
+  ParentAreaId: number;
 
   @Field(() => DateTimeResolver)
   CreatedOn: Date;
@@ -38,10 +38,10 @@ export class Area extends AreaBase {
   @Field(() => AreaBase, { nullable: true })
   ParentArea: AreaBase | null;
 
-  @Field(() => [AreaBase])
+  @Field(() => [AreaBase], { nullable: true, defaultValue: [] })
   SubAreas: AreaBase[];
 
-  @Field(() => [NetworkDeviceBase])
+  @Field(() => [NetworkDeviceBase], { nullable: true, defaultValue: [] })
   Devices: NetworkDeviceBase[];
 
   @Field(() => Int, { nullable: true, defaultValue: 0 })
@@ -51,7 +51,7 @@ export class Area extends AreaBase {
 @InputType()
 export class PropertyAreaInput {
   @Field(() => ID, { nullable: true })
-  Id: any;
+  Id: number | null;
 
   @Field()
   Name: string;
@@ -63,7 +63,7 @@ export class PropertyAreaInput {
 @InputType()
 export class LevelAreaInput {
   @Field(() => ID, { nullable: true })
-  Id: any;
+  Id: number | null;
 
   @Field()
   Name: string;
@@ -78,7 +78,7 @@ export class LevelAreaInput {
 @InputType()
 export class UnitAreaInput {
   @Field(() => ID, { nullable: true })
-  Id: any;
+  Id: number | null;
 
   @Field()
   Name: string;

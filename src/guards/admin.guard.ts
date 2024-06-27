@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
     return ctx.getContext().req;
   }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(context: ExecutionContext) {
     const request = this.getRequest(context);
     const token = this.extractTokenFromHeader(request);
 
@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate {
       token === process.env['ADMIN_DEV_TOKEN']
     ) {
       request['user'] = await this.userService.findByUsername('admin');
-      return true;
+      return request['user'];
     }
     try {
       const payload: {
@@ -50,7 +50,9 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    return true;
+    console.log('AuthGuard', request.user);
+
+    return request['user'];
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

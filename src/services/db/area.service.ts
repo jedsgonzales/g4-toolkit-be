@@ -142,20 +142,25 @@ export class AreaService {
     const area = await (!!Id
       ? this.prisma.area.update({
           where: {
-            Id,
+            Id: Number(Id),
           },
           data: {
             Name,
             Details,
             Type,
             ParentArea: !!ParentAreaId
-              ? { connect: { Id: ParentAreaId } }
+              ? { connect: { Id: Number(ParentAreaId) } }
               : undefined,
             CreatedOn: now,
             CreatedBy: userId,
             UpdatedOn: now,
             UpdatedBy: userId,
           },
+          include: {
+            Devices: true,
+            ParentArea: true,
+            SubAreas: true,
+          }
         })
       : this.prisma.area.create({
           data: {
@@ -163,13 +168,18 @@ export class AreaService {
             Details,
             Type,
             ParentArea: !!ParentAreaId
-              ? { connect: { Id: ParentAreaId } }
+              ? { connect: { Id: Number(ParentAreaId) } }
               : undefined,
             CreatedOn: now,
             CreatedBy: userId,
             UpdatedOn: now,
             UpdatedBy: userId,
           },
+          include: {
+            Devices: true,
+            ParentArea: true,
+            SubAreas: true,
+          }
         }));
 
     if (attachDeviceId) {
