@@ -54,7 +54,7 @@ export class ReceiverAnnouncements {
   @UseGuards(LocalhostGuard)
   @Query(() => NetworkBroadcasterBase)
   async AnnounceNewBroadcaster(@Args('ip') ip: string) {
-    const broadcaster = await this.networkBroacasterService.byId(ip);
+    const broadcaster = await this.networkBroacasterService.ById(ip);
 
     if (broadcaster)
       pubSub.publish('BroadcasterDetected', {
@@ -71,7 +71,7 @@ export class ReceiverAnnouncements {
     @Args({ name: 'id', type: () => Int }) id: number,
     @Args({ name: 'subnet', type: () => Int }) subnet: number,
   ) {
-    const device = await this.deviceService.find({
+    const device = await this.deviceService.Find({
       ip,
       deviceId: id,
       subnetId: subnet,

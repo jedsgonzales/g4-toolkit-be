@@ -10,6 +10,24 @@ export class LocationQueries {
   constructor(private readonly locationService: AreaService) {}
 
   @UseGuards(AuthGuard)
+  @Query(() => Area)
+  async ById(@Args({ name: 'AreaId', type: () => Int }) areaId: number) {
+    const result = await this.locationService.byId(areaId, {
+      inclDevices: true,
+    });
+
+    return {
+      ...result,
+      DeviceCount:
+        result.Type === 'Property'
+          ? await this.locationService.propertyDeviceCount(result.Id)
+          : result.Type === 'Level'
+            ? await this.locationService.levelDeviceCount(result.Id)
+            : await this.locationService.unitDeviceCount(result.Id),
+    };
+  }
+
+  @UseGuards(AuthGuard)
   @Query(() => [Area])
   async Properties(): Promise<Area[]> {
     const result = await this.locationService.listArea(

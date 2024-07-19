@@ -47,7 +47,7 @@ export class FilterMutations {
     @Args({ name: 'States', type: () => [Boolean] }) States: boolean[],
     @Context() ctx: GraphQLContext,
   ) {
-    await this.deviceService.toggleDevices(
+    await this.deviceService.ToggleDevices(
       IdList,
       States,
       ctx.req.user.Username,

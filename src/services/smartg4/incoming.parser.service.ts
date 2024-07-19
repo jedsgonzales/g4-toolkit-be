@@ -65,7 +65,7 @@ export class IncomingParser {
           console.log('\tcalling opcode handler', opCode);
           const channelList = responseOpCodeMap[opCode](packet);
 
-          const device = await this.deviceService.findOrCreate({
+          const device = await this.deviceService.FindOrCreate({
             ip: incomingMsg.SenderIp,
             subnetId: incomingMsg.TargetSubnetId,
             deviceId: incomingMsg.TargetDeviceId,

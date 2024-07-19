@@ -25,13 +25,19 @@ export class ChannelNodeBase {
 }
 
 @ObjectType()
-export class ChannelNode extends ChannelNodeBase {
-  @Field(() => NetworkDeviceBase)
-  NetworkDevice: NetworkDeviceBase;
-
+export class ChannelNodeWithStatus extends ChannelNodeBase {
   @Field(() => [ChannelStatusBase], { nullable: true })
   Status: ChannelStatusBase[];
+}
 
+@ObjectType()
+export class ChannelNode extends ChannelNodeWithStatus {
+  @Field(() => NetworkDeviceBase)
+  NetworkDevice: NetworkDeviceBase;
+}
+
+@ObjectType()
+export class ChannelNodeWithHistory extends ChannelNode {
   @Field(() => [ChannelStatusHistoryBase], { nullable: true })
   History: ChannelStatusHistoryBase[];
 }

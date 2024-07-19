@@ -105,7 +105,7 @@ export abstract class ChannelNode<T, C> {
       return; // nothing to save
     }
 
-    const currTs = DateTime.now().toMillis();
+    const currTs = DateTime.utc();
     const delKeys: string[] = [];
 
     for (const key of Object.keys(this.State)) {
@@ -175,8 +175,8 @@ export abstract class ChannelNode<T, C> {
     if (this.NetworkDevice.StatusHistory) {
       await prismaService.channelStatusHistory.create({
         data: {
-          Id: `${this.NetworkDevice.Id}/${this.Id}/${currTs}`,
-          Time: currTs,
+          Id: `${this.NetworkDevice.Id}/${this.Id}/${currTs.toMillis()}`,
+          Time: currTs.toJSDate(),
           State: JSON.stringify(SaveState),
           Channel: {
             connect: { Id: this.Id },

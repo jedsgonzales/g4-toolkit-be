@@ -34,18 +34,18 @@ export class FilterQueries {
   @UseGuards(AuthGuard)
   @Query(() => [NetworkDevice])
   async AllDeviceFilters() {
-    return await this.deviceService.all();
+    return await this.deviceService.All();
   }
 
   @UseGuards(AuthGuard)
   @Query(() => [NetworkDevice])
   async DisabledDevices() {
-    return await this.deviceService.disabledDevices();
+    return await this.deviceService.DisabledDevices();
   }
 
   @UseGuards(AuthGuard)
   @Query(() => [NetworkDevice])
   async ActiveDevices() {
-    return await this.deviceService.enabledDevices();
+    return await this.deviceService.EnabledDevices();
   }
 }

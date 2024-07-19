@@ -1,6 +1,12 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { DateTimeResolver } from 'graphql-scalars';
 import { NetworkDeviceBase } from './network.device';
+
+@ObjectType()
+class NetworkDeviceCount {
+  @Field(() => Int)
+  NetworkDevices: number;
+}
 
 @ObjectType()
 export class NetworkBroadcasterBase {
@@ -38,5 +44,8 @@ export class NetworkBroadcasterBase {
 @ObjectType()
 export class NetworkBroadcaster extends NetworkBroadcasterBase {
   @Field(() => [NetworkDeviceBase])
-  Devices: NetworkDeviceBase[];
+  NetworkDevices: NetworkDeviceBase[];
+
+  @Field(() => NetworkDeviceCount, { nullable: true })
+  _count?: NetworkDeviceCount;
 }
