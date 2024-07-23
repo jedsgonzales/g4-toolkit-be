@@ -8,7 +8,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 import { DeviceService } from 'src/services/db/device.service';
 
 @Resolver()
-export class NetworkMutations {
+export class NetworkDeviceMutations {
   constructor(
     @Inject(forwardRef(() => DeviceService))
     private readonly deviceService: DeviceService,
@@ -22,6 +22,15 @@ export class NetworkMutations {
     @Args('RoomId', { type: () => Int, nullable: true }) locationId: number | null,
   ) {
     return await this.deviceService.DeviceToRoom(deviceId, locationId);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(['Admin'])
+  @Mutation(() => Boolean)
+  async DelDevice(
+    @Args('DeviceId', { type: () => Int }) deviceId: number,
+  ) {
+    return !!(await this.deviceService.DelDevice(deviceId));
   }
 
   @UseGuards(AuthGuard, RolesGuard)

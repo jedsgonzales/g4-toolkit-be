@@ -24,6 +24,7 @@ import { AuthQueries } from './graphql/resolvers/queries/auth.queries';
 import { UserQueries } from './graphql/resolvers/queries/user.queries';
 import { LocationQueries } from './graphql/resolvers/queries/location.queries';
 import { LocationMutations } from './graphql/resolvers/mutations/location.mutations';
+import { NetworkDeviceMutations } from './graphql/resolvers/mutations/network.device.mutations';
 
 const isProd =
   process.env['NODE_ENV'] !== 'development' &&
@@ -72,6 +73,7 @@ const isProd =
 
     FilterMutations,
     LocationMutations,
+    NetworkDeviceMutations,
   ],
 })
 export class AppModule {}

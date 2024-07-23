@@ -322,4 +322,10 @@ export class DeviceService {
       }
     })
   }
+
+  async DelDevice(deviceId: number){
+    return await this.prisma.networkDevice.delete({
+      where: { Id: deviceId },
+    })
+  }
 }
